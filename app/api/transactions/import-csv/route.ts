@@ -6,7 +6,6 @@ import { categorizeTransaction } from "@/lib/categorization/rules";
 
 export const dynamic = "force-dynamic";
 
-
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,45 +16,108 @@ export async function POST(req: Request) {
 
     const userId = session.user.id;
     const body = await req.json();
-    const { rows, filename } = body;
+    const { validRows, errors: clientErrors, filename } = body;
 
-    if (!Array.isArray(rows) || rows.length === 0) {
-      return NextResponse.json({ error: "No valid transaction rows found in uploaded statement." }, { status: 400 });
+    if (!Array.isArray(validRows) || validRows.length === 0) {
+      return NextResponse.json(
+        {
+          error: "No valid transaction rows found to import.",
+          errors: clientErrors || [],
+        },
+        { status: 400 }
+      );
     }
 
-    // Fetch user categories
-    const categories = await prisma.category.findMany({
-      where: { OR: [{ userId: null }, { userId }] },
-    });
+    // 1. Fetch user categories and accounts for mapping
+    const [categories, userAccounts, existingTransactions] = await Promise.all([
+      prisma.category.findMany({
+        where: { OR: [{ userId: null }, { userId }] },
+      }),
+      prisma.financialAccount.findMany({
+        where: { userId },
+      }),
+      // Fetch recent transactions for duplicate detection
+      prisma.transaction.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          date: true,
+          description: true,
+          merchant: true,
+          amount: true,
+        },
+      }),
+    ]);
 
     const categoryMap = new Map<string, string>();
     categories.forEach((c) => categoryMap.set(c.name, c.id));
 
+    const accountMap = new Map<string, string>();
+    userAccounts.forEach((a) => accountMap.set(a.name.toLowerCase(), a.id));
+    const defaultAccountId = userAccounts.length > 0 ? userAccounts[0].id : null;
+
     const importBatchId = `batch_${Date.now()}`;
     let insertedCount = 0;
-    let skippedCount = 0;
+    const duplicateRows: Array<{ description: string; amount: number; date: string; reason: string }> = [];
+    const createdTransactions: any[] = [];
 
-    for (const row of rows) {
-      const desc = (row.description || row.merchant || row.memo || "").trim();
-      const rawAmt = parseFloat(row.amount);
-      const dateVal = row.date ? new Date(row.date) : new Date();
+    // Helper to generate signature for exact duplicate checking
+    const getSignature = (dateStr: string, desc: string, amt: number) =>
+      `${dateStr}_${desc.trim().toLowerCase()}_${amt.toFixed(2)}`;
 
-      if (!desc || isNaN(rawAmt)) {
-        skippedCount++;
+    // Set of existing transaction signatures
+    const existingSignatures = new Set<string>();
+    existingTransactions.forEach((tx) => {
+      const dStr = new Date(tx.date).toISOString().split("T")[0];
+      existingSignatures.add(getSignature(dStr, tx.description, tx.amount));
+    });
+
+    for (const row of validRows) {
+      const desc = String(row.description || "").trim();
+      const numAmt = parseFloat(row.amount);
+      const rowDate = new Date(row.date);
+      const dateStr = !isNaN(rowDate.getTime())
+        ? rowDate.toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
+
+      if (!desc || isNaN(numAmt) || numAmt <= 0) {
         continue;
       }
 
-      // Check if categorization rule matches
-      const catResult = categorizeTransaction(desc, rawAmt);
+      // Check for exact duplicate match
+      const sig = getSignature(dateStr, desc, numAmt);
+      if (existingSignatures.has(sig)) {
+        duplicateRows.push({
+          description: desc,
+          amount: numAmt,
+          date: dateStr,
+          reason: `Exact match with existing transaction on ${dateStr} (₹${numAmt.toFixed(2)})`,
+        });
+        continue;
+      }
+
+      // Register this signature to prevent intra-batch duplicates as well
+      existingSignatures.add(sig);
+
+      // Run deterministic categorization
+      const catResult = categorizeTransaction(desc, numAmt);
       const catId = categoryMap.get(catResult.categoryName) || null;
 
-      await prisma.transaction.create({
+      // Account association if provided
+      let accountId = defaultAccountId;
+      if (row.accountName) {
+        const matchedAccId = accountMap.get(String(row.accountName).toLowerCase());
+        if (matchedAccId) accountId = matchedAccId;
+      }
+
+      const tx = await prisma.transaction.create({
         data: {
           userId,
+          accountId,
           categoryId: catId,
-          amount: Math.abs(rawAmt),
+          amount: numAmt,
           type: row.type || catResult.type,
-          date: isNaN(dateVal.getTime()) ? new Date() : dateVal,
+          date: !isNaN(rowDate.getTime()) ? rowDate : new Date(),
           description: desc,
           merchant: catResult.cleanedMerchant,
           source: "CSV_IMPORT",
@@ -64,15 +126,19 @@ export async function POST(req: Request) {
         },
       });
 
+      createdTransactions.push(tx);
       insertedCount++;
     }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully imported ${insertedCount} transactions (${skippedCount} skipped due to invalid format).`,
+      message: `Import complete: ${insertedCount} inserted, ${duplicateRows.length} duplicates skipped, ${clientErrors?.length || 0} malformed rows excluded.`,
       insertedCount,
-      skippedCount,
+      duplicateCount: duplicateRows.length,
+      skippedCount: clientErrors?.length || 0,
       batchId: importBatchId,
+      duplicates: duplicateRows,
+      errors: clientErrors || [],
     });
   } catch (error) {
     console.error("Import CSV API error:", error);
