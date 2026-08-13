@@ -6,6 +6,9 @@ import {
   X, 
   Upload, 
   FileSpreadsheet, 
+  FileText,
+  Lock,
+  KeyRound,
   AlertCircle, 
   CheckCircle2, 
   Loader2, 
@@ -42,49 +45,110 @@ export function UploadStatementModal({
   onSuccess,
 }: UploadStatementModalProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [password, setPassword] = useState("");
+  const [isPasswordRequired, setIsPasswordRequired] = useState(false);
   const [parseResult, setParseResult] = useState<StatementParseResult | null>(null);
   const [importSummary, setImportSummary] = useState<ImportSummaryResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isParsingPdf, setIsParsingPdf] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const processPdfFile = async (pdfFile: File, inputPassword = "") => {
+    setIsParsingPdf(true);
+    setErrorMessage(null);
+
+    const formData = new FormData();
+    formData.append("file", pdfFile);
+    if (inputPassword) {
+      formData.append("password", inputPassword);
+    }
+
+    try {
+      const res = await fetch("/api/transactions/parse-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.status === 422 || data.error === "PASSWORD_REQUIRED") {
+        setIsPasswordRequired(true);
+        setErrorMessage(data.message || "This PDF is password protected. Enter password below.");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(data.message || data.error || "Failed to parse PDF statement.");
+      }
+
+      setIsPasswordRequired(false);
+      setParseResult({
+        validRows: data.validRows,
+        errors: data.errors || [],
+        totalRowsProcessed: data.totalRowsProcessed,
+        detectedFormat: "EXTENDED_STATEMENT",
+      });
+    } catch (err: any) {
+      setErrorMessage(err.message || "Error extracting transactions from PDF statement.");
+    } finally {
+      setIsParsingPdf(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     setErrorMessage(null);
     setParseResult(null);
     setImportSummary(null);
+    setIsPasswordRequired(false);
+    setPassword("");
 
     if (!selectedFile) return;
 
-    if (!selectedFile.name.endsWith(".csv") && selectedFile.type !== "text/csv") {
-      setErrorMessage("Please select a valid .csv bank statement file.");
+    const isCsv = selectedFile.name.endsWith(".csv") || selectedFile.type === "text/csv";
+    const isPdf = selectedFile.name.endsWith(".pdf") || selectedFile.type === "application/pdf";
+
+    if (!isCsv && !isPdf) {
+      setErrorMessage("Please select a valid .csv or .pdf bank statement file.");
       return;
     }
 
     setFile(selectedFile);
 
-    Papa.parse(selectedFile, {
-      header: true,
-      skipEmptyLines: "greedy",
-      complete: (results) => {
-        if (!results.data || results.data.length === 0) {
-          setErrorMessage("The uploaded CSV file is empty or could not be read.");
-          return;
-        }
+    if (isPdf) {
+      processPdfFile(selectedFile);
+    } else {
+      // Process CSV locally
+      Papa.parse(selectedFile, {
+        header: true,
+        skipEmptyLines: "greedy",
+        complete: (results) => {
+          if (!results.data || results.data.length === 0) {
+            setErrorMessage("The uploaded CSV file is empty or could not be read.");
+            return;
+          }
 
-        const rawData = results.data as Record<string, any>[];
-        const res = parseBankStatementCSV(rawData);
-        setParseResult(res);
+          const rawData = results.data as Record<string, any>[];
+          const res = parseBankStatementCSV(rawData);
+          setParseResult(res);
 
-        if (res.validRows.length === 0 && res.errors.length > 0) {
-          setErrorMessage(`Could not extract valid transactions: ${res.errors[0].reason}`);
-        }
-      },
-      error: (error) => {
-        setErrorMessage(`CSV Parsing error: ${error.message}`);
-      },
-    });
+          if (res.validRows.length === 0 && res.errors.length > 0) {
+            setErrorMessage(`Could not extract valid transactions: ${res.errors[0].reason}`);
+          }
+        },
+        error: (error) => {
+          setErrorMessage(`CSV Parsing error: ${error.message}`);
+        },
+      });
+    }
+  };
+
+  const handleUnlockPdf = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file || !password.trim()) return;
+    processPdfFile(file, password.trim());
   };
 
   const handleImport = async () => {
@@ -99,7 +163,7 @@ export function UploadStatementModal({
         body: JSON.stringify({
           validRows: parseResult.validRows,
           errors: parseResult.errors,
-          filename: file?.name || "statement.csv",
+          filename: file?.name || "statement",
         }),
       });
 
@@ -128,6 +192,8 @@ export function UploadStatementModal({
 
   const handleClose = () => {
     setFile(null);
+    setPassword("");
+    setIsPasswordRequired(false);
     setParseResult(null);
     setImportSummary(null);
     setErrorMessage(null);
@@ -140,12 +206,12 @@ export function UploadStatementModal({
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
           <div>
             <h3 className="text-base font-bold text-slate-900 font-display">
-              {importSummary ? "Statement Import Summary" : "Import Bank Statement (CSV)"}
+              {importSummary ? "Statement Import Summary" : "Import Bank Statement (PDF / CSV)"}
             </h3>
             <p className="text-xs text-slate-500">
               {importSummary
                 ? "Detailed report of inserted, duplicate, and excluded rows"
-                : "Auto-detects HDFC, SBI, ICICI, Axis, Chase, BoA & generic statement exports"}
+                : "Supports HDFC, SBI, ICICI, Axis, Chase statements with password decrypt & auto-dedup"}
             </p>
           </div>
           <button
@@ -171,23 +237,70 @@ export function UploadStatementModal({
               <div className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-2xl p-6 text-center transition bg-slate-50/50">
                 <input
                   type="file"
-                  accept=".csv"
-                  id="csv-file-input"
+                  accept=".csv,.pdf"
+                  id="statement-file-input"
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <label htmlFor="csv-file-input" className="cursor-pointer flex flex-col items-center">
+                <label htmlFor="statement-file-input" className="cursor-pointer flex flex-col items-center">
                   <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3">
-                    <FileSpreadsheet className="w-6 h-6" />
+                    {file?.name.endsWith(".pdf") ? (
+                      <FileText className="w-6 h-6 text-rose-600" />
+                    ) : (
+                      <FileSpreadsheet className="w-6 h-6 text-emerald-700" />
+                    )}
                   </div>
                   <p className="text-sm font-semibold text-slate-800">
-                    {file ? file.name : "Click to choose a Bank Statement (.csv)"}
+                    {file ? file.name : "Click to choose a Bank Statement (.pdf or .csv)"}
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    Supports 2-column Debit/Credit, single signed Amount, multiple date formats & Indian bank exports.
+                    Upload official PDF e-statements or exported CSVs. Zero third-party data transmission.
                   </p>
                 </label>
               </div>
+
+              {/* PDF Password Decryption Prompt */}
+              {isPasswordRequired && (
+                <form
+                  onSubmit={handleUnlockPdf}
+                  className="p-4 rounded-xl border border-amber-300 bg-amber-50/60 flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 animate-in fade-in duration-200"
+                >
+                  <div className="flex items-center space-x-2 text-amber-900 text-xs font-semibold flex-shrink-0">
+                    <Lock className="w-4 h-4 text-amber-700" />
+                    <span>Statement Password:</span>
+                  </div>
+                  <div className="relative flex-1">
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="e.g. DOB (DDMMYYYY) or PAN"
+                      className="w-full pl-8 pr-3 py-2 bg-white border border-amber-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                    <KeyRound className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isParsingPdf}
+                    className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs rounded-lg transition disabled:opacity-50 flex items-center justify-center"
+                  >
+                    {isParsingPdf ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      "Unlock & Parse"
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {/* Parsing Loading State */}
+              {isParsingPdf && !isPasswordRequired && (
+                <div className="p-6 text-center space-y-2">
+                  <Loader2 className="w-6 h-6 text-emerald-700 animate-spin mx-auto" />
+                  <p className="text-xs text-slate-600 font-medium">Extracting bank transactions from PDF...</p>
+                </div>
+              )}
 
               {/* Format Badge & Row Metrics */}
               {parseResult && (
@@ -195,10 +308,12 @@ export function UploadStatementModal({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                        Valid Rows ({parseResult.validRows.length})
+                        Extracted Rows ({parseResult.validRows.length})
                       </span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold border border-slate-200">
-                        {parseResult.detectedFormat === "DEBIT_CREDIT_COLUMNS"
+                        {file?.name.endsWith(".pdf")
+                          ? "PDF Decrypted & Parsed"
+                          : parseResult.detectedFormat === "DEBIT_CREDIT_COLUMNS"
                           ? "Debit/Credit Columns Detected"
                           : "Single Amount Detected"}
                       </span>
