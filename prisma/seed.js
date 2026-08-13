@@ -80,64 +80,64 @@ const DEFAULT_CATEGORIES = [
 
 const SAMPLE_TRANSACTIONS = [
   // Inflows (INR)
-  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 1, isRecurring: true, reason: "Rule matched keyword: salary" },
-  { desc: "FREELANCE UI DESIGN CLIENT PAYOUT", amount: 24000.00, type: "INCOME", cat: "Income", daysAgo: 12, reason: "Rule matched keyword: freelance" },
-  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 31, isRecurring: true, reason: "Rule matched keyword: salary" },
-  { desc: "HDFC MUTUAL FUND DIVIDEND PAYOUT", amount: 3850.00, type: "INCOME", cat: "Income", daysAgo: 28, reason: "Rule matched keyword: dividend" },
-  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 61, isRecurring: true, reason: "Rule matched keyword: salary" },
+  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 1, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: salary" },
+  { desc: "FREELANCE UI DESIGN CLIENT PAYOUT", amount: 24000.00, type: "INCOME", cat: "Income", daysAgo: 12, accountName: "HDFC Salary Account", reason: "Rule matched keyword: freelance" },
+  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 31, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: salary" },
+  { desc: "HDFC MUTUAL FUND DIVIDEND PAYOUT", amount: 3850.00, type: "INCOME", cat: "Income", daysAgo: 28, accountName: "Zerodha Investment A/C", reason: "Rule matched keyword: dividend" },
+  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 61, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: salary" },
 
   // Housing
-  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 2, isRecurring: true, reason: "Rule matched keyword: rent" },
-  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 32, isRecurring: true, reason: "Rule matched keyword: rent" },
-  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 62, isRecurring: true, reason: "Rule matched keyword: rent" },
+  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 2, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: rent" },
+  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 32, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: rent" },
+  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 62, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: rent" },
 
   // Utilities
-  { desc: "BESCOM ELECTRICITY BILL PAYMENT", amount: 2850.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 5, isRecurring: true, reason: "Rule matched keyword: bescom" },
-  { desc: "AIRTEL FIBER BROADBAND HIGH SPEED INTERNET", amount: 1199.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 8, isRecurring: true, reason: "Rule matched keyword: airtel" },
-  { desc: "JIO POSTPAID MOBILE FAMILY PLAN", amount: 999.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 10, isRecurring: true, reason: "Rule matched keyword: jio" },
-  { desc: "BESCOM ELECTRICITY BILL PAYMENT", amount: 2640.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 35, isRecurring: true, reason: "Rule matched keyword: bescom" },
-  { desc: "AIRTEL FIBER BROADBAND HIGH SPEED INTERNET", amount: 1199.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 38, isRecurring: true, reason: "Rule matched keyword: airtel" },
+  { desc: "BESCOM ELECTRICITY BILL PAYMENT", amount: 2850.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 5, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: bescom" },
+  { desc: "AIRTEL FIBER BROADBAND HIGH SPEED INTERNET", amount: 1199.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 8, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: airtel" },
+  { desc: "JIO POSTPAID MOBILE FAMILY PLAN", amount: 999.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 10, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: jio" },
+  { desc: "BESCOM ELECTRICITY BILL PAYMENT", amount: 2640.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 35, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: bescom" },
+  { desc: "AIRTEL FIBER BROADBAND HIGH SPEED INTERNET", amount: 1199.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 38, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: airtel" },
 
   // Food & Dining
-  { desc: "BLINKIT GROCERIES EXPRESS DELIVERY", amount: 1450.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 3, reason: "Rule matched keyword: blinkit" },
-  { desc: "RELIANCE FRESH SUPERMARKET VEGETABLES", amount: 3280.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 7, reason: "Rule matched keyword: reliance fresh" },
-  { desc: "SWIGGY INSTAMART ESSENTIALS", amount: 890.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 14, reason: "Rule matched keyword: swiggy" },
-  { desc: "THIRD WAVE COFFEE CAFE", amount: 480.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 4, reason: "Rule matched keyword: cafe" },
-  { desc: "ZOMATO RESTAURANT DINING", amount: 1650.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 6, reason: "Rule matched keyword: zomato" },
-  { desc: "SWIGGY GOURMET FOOD DELIVERY", amount: 720.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 11, reason: "Rule matched keyword: swiggy" },
-  { desc: "NATURE BASKET ORGANIC SUPERMARKET", amount: 2850.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 18, reason: "Rule matched keyword: supermarket" },
-  { desc: "STARBUCKS COFFEE ROASTERS", amount: 560.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 22, reason: "Rule matched keyword: starbucks" },
+  { desc: "BLINKIT GROCERIES EXPRESS DELIVERY", amount: 1450.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 3, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: blinkit" },
+  { desc: "RELIANCE FRESH SUPERMARKET VEGETABLES", amount: 3280.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 7, accountName: "HDFC Salary Account", reason: "Rule matched keyword: reliance fresh" },
+  { desc: "SWIGGY INSTAMART ESSENTIALS", amount: 890.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 14, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: swiggy" },
+  { desc: "THIRD WAVE COFFEE CAFE", amount: 480.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 4, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: cafe" },
+  { desc: "ZOMATO RESTAURANT DINING", amount: 1650.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 6, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: zomato" },
+  { desc: "SWIGGY GOURMET FOOD DELIVERY", amount: 720.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 11, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: swiggy" },
+  { desc: "NATURE BASKET ORGANIC SUPERMARKET", amount: 2850.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 18, accountName: "HDFC Salary Account", reason: "Rule matched keyword: supermarket" },
+  { desc: "STARBUCKS COFFEE ROASTERS", amount: 560.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 22, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: starbucks" },
 
   // Transportation
-  { desc: "INDIAN OIL PETROL FUEL PUMP", amount: 3500.00, type: "EXPENSE", cat: "Transportation", daysAgo: 4, reason: "Rule matched keyword: fuel" },
-  { desc: "UBER RIDE BANGALORE COMMUTE", amount: 420.00, type: "EXPENSE", cat: "Transportation", daysAgo: 9, reason: "Rule matched keyword: uber" },
-  { desc: "FASTAG TOLL PLAZA HIGHWAY", amount: 280.00, type: "EXPENSE", cat: "Transportation", daysAgo: 13, reason: "Rule matched keyword: fastag" },
-  { desc: "HDFC ERGO CAR INSURANCE PREMIUM", amount: 3800.00, type: "EXPENSE", cat: "Transportation", daysAgo: 16, isRecurring: true, reason: "Rule matched keyword: auto insurance" },
-  { desc: "SHELL PETROL FUEL PUMP", amount: 3200.00, type: "EXPENSE", cat: "Transportation", daysAgo: 25, reason: "Rule matched keyword: fuel" },
+  { desc: "INDIAN OIL PETROL FUEL PUMP", amount: 3500.00, type: "EXPENSE", cat: "Transportation", daysAgo: 4, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: fuel" },
+  { desc: "UBER RIDE BANGALORE COMMUTE", amount: 420.00, type: "EXPENSE", cat: "Transportation", daysAgo: 9, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: uber" },
+  { desc: "FASTAG TOLL PLAZA HIGHWAY", amount: 280.00, type: "EXPENSE", cat: "Transportation", daysAgo: 13, accountName: "HDFC Salary Account", reason: "Rule matched keyword: fastag" },
+  { desc: "HDFC ERGO CAR INSURANCE PREMIUM", amount: 3800.00, type: "EXPENSE", cat: "Transportation", daysAgo: 16, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: auto insurance" },
+  { desc: "SHELL PETROL FUEL PUMP", amount: 3200.00, type: "EXPENSE", cat: "Transportation", daysAgo: 25, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: fuel" },
 
   // Healthcare
-  { desc: "APOLLO PHARMACY HEALTH MEDICINES", amount: 1450.00, type: "EXPENSE", cat: "Healthcare", daysAgo: 11, reason: "Rule matched keyword: apollo" },
-  { desc: "PRACTO DOCTOR CONSULTATION COPAY", amount: 800.00, type: "EXPENSE", cat: "Healthcare", daysAgo: 26, reason: "Rule matched keyword: practo" },
+  { desc: "APOLLO PHARMACY HEALTH MEDICINES", amount: 1450.00, type: "EXPENSE", cat: "Healthcare", daysAgo: 11, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: apollo" },
+  { desc: "PRACTO DOCTOR CONSULTATION COPAY", amount: 800.00, type: "EXPENSE", cat: "Healthcare", daysAgo: 26, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: practo" },
 
   // Entertainment
-  { desc: "NETFLIX INDIA MONTHLY 4K STREAMING", amount: 649.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 6, isRecurring: true, reason: "Rule matched keyword: netflix" },
-  { desc: "SPOTIFY PREMIUM FAMILY PLAN", amount: 179.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 12, isRecurring: true, reason: "Rule matched keyword: spotify" },
-  { desc: "CULT FIT GYM & FITNESS MEMBERSHIP", amount: 3200.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 22, isRecurring: true, reason: "Rule matched keyword: gym" },
-  { desc: "BOOKMYSHOW PVR CINEMA MOVIE TICKETS", amount: 980.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 17, reason: "Rule matched keyword: bookmyshow" },
+  { desc: "NETFLIX INDIA MONTHLY 4K STREAMING", amount: 649.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 6, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: netflix" },
+  { desc: "SPOTIFY PREMIUM FAMILY PLAN", amount: 179.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 12, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: spotify" },
+  { desc: "CULT FIT GYM & FITNESS MEMBERSHIP", amount: 3200.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 22, accountName: "ICICI Sapphiro Card", isRecurring: true, reason: "Rule matched keyword: gym" },
+  { desc: "BOOKMYSHOW PVR CINEMA MOVIE TICKETS", amount: 980.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 17, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: bookmyshow" },
 
   // Shopping
-  { desc: "AMAZON INDIA RETAIL APPAREL ORDER", amount: 2890.00, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 7, reason: "Rule matched keyword: amazon" },
-  { desc: "MYNTRA FASHION CLOTHING", amount: 3450.00, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 19, reason: "Rule matched keyword: clothing" },
+  { desc: "AMAZON INDIA RETAIL APPAREL ORDER", amount: 2890.00, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 7, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: amazon" },
+  { desc: "MYNTRA FASHION CLOTHING", amount: 3450.00, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 19, accountName: "ICICI Sapphiro Card", reason: "Rule matched keyword: clothing" },
 
   // Savings
-  { desc: "ZERODHA NIFTY 50 INDEX SIP AUTO-DEPOSIT", amount: 30000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 2, isRecurring: true, reason: "Rule matched keyword: zerodha" },
-  { desc: "HDFC HIGH YIELD EMERGENCY SAVINGS TRANSFER", amount: 15000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 15, isRecurring: true, reason: "Rule matched keyword: emergency fund" },
-  { desc: "ZERODHA NIFTY 50 INDEX SIP AUTO-DEPOSIT", amount: 30000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 32, isRecurring: true, reason: "Rule matched keyword: zerodha" },
-  { desc: "HDFC HIGH YIELD EMERGENCY SAVINGS TRANSFER", amount: 15000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 45, isRecurring: true, reason: "Rule matched keyword: emergency fund" },
+  { desc: "ZERODHA NIFTY 50 INDEX SIP AUTO-DEPOSIT", amount: 30000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 2, accountName: "Zerodha Investment A/C", isRecurring: true, reason: "Rule matched keyword: zerodha" },
+  { desc: "HDFC HIGH YIELD EMERGENCY SAVINGS TRANSFER", amount: 15000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 15, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: emergency fund" },
+  { desc: "ZERODHA NIFTY 50 INDEX SIP AUTO-DEPOSIT", amount: 30000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 32, accountName: "Zerodha Investment A/C", isRecurring: true, reason: "Rule matched keyword: zerodha" },
+  { desc: "HDFC HIGH YIELD EMERGENCY SAVINGS TRANSFER", amount: 15000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 45, accountName: "HDFC Salary Account", isRecurring: true, reason: "Rule matched keyword: emergency fund" },
 ];
 
 async function seed() {
-  console.log("🌱 Seeding database with INR currency...");
+  console.log("🌱 Seeding database with first-class accounts and INR taxonomy...");
 
   // 1. Create Default Categories & Keywords
   const categoryRecordMap = new Map();
@@ -199,7 +199,35 @@ async function seed() {
     console.log("Created demo user: demo@smartfinance.app / password123");
   }
 
-  // 3. Clear and re-populate demo transactions
+  // 3. Create First-Class Financial Accounts for Demo User
+  await prisma.financialAccount.deleteMany({
+    where: { userId: demoUser.id },
+  });
+
+  const accountMap = new Map();
+
+  const accountsToCreate = [
+    { name: "HDFC Salary Account", type: "SAVINGS", institution: "HDFC Bank", accountNumberLast4: "4092", balance: 145000.00 },
+    { name: "ICICI Sapphiro Card", type: "CREDIT_CARD", institution: "ICICI Bank", accountNumberLast4: "8821", balance: -24500.00 },
+    { name: "Zerodha Investment A/C", type: "INVESTMENT", institution: "Zerodha Broking", accountNumberLast4: "9102", balance: 280000.00 },
+  ];
+
+  for (const acc of accountsToCreate) {
+    const createdAcc = await prisma.financialAccount.create({
+      data: {
+        userId: demoUser.id,
+        name: acc.name,
+        type: acc.type,
+        institution: acc.institution,
+        accountNumberLast4: acc.accountNumberLast4,
+        balance: acc.balance,
+        currency: "INR",
+      },
+    });
+    accountMap.set(acc.name, createdAcc.id);
+  }
+
+  // 4. Clear and re-populate demo transactions
   await prisma.transaction.deleteMany({
     where: { userId: demoUser.id },
   });
@@ -209,10 +237,12 @@ async function seed() {
   for (const item of SAMPLE_TRANSACTIONS) {
     const txDate = new Date(now.getTime() - item.daysAgo * 24 * 60 * 60 * 1000);
     const catRecord = categoryRecordMap.get(item.cat);
+    const accountId = accountMap.get(item.accountName) || null;
 
     await prisma.transaction.create({
       data: {
         userId: demoUser.id,
+        accountId,
         categoryId: catRecord ? catRecord.id : null,
         amount: item.amount,
         type: item.type,
@@ -226,12 +256,12 @@ async function seed() {
     });
   }
 
-  // 4. Create demo financial goals in INR
-  await prisma.financialGoal.deleteMany({
+  // 5. Create demo savings goals in INR
+  await prisma.savingsGoal.deleteMany({
     where: { userId: demoUser.id },
   });
 
-  await prisma.financialGoal.createMany({
+  await prisma.savingsGoal.createMany({
     data: [
       {
         userId: demoUser.id,
@@ -254,7 +284,7 @@ async function seed() {
     ],
   });
 
-  // 5. Create demo budgets in INR
+  // 6. Create demo budgets in INR
   await prisma.budget.deleteMany({
     where: { userId: demoUser.id },
   });
@@ -289,7 +319,7 @@ async function seed() {
     });
   }
 
-  console.log("✅ Seed completed successfully with INR default currency!");
+  console.log("✅ Seed completed successfully!");
 }
 
 seed()

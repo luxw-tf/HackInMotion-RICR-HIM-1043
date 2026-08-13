@@ -55,28 +55,51 @@ export async function POST() {
       });
     }
 
+    // Ensure sample financial accounts exist for the user
+    const existingAccounts = await prisma.financialAccount.findMany({
+      where: { userId },
+    });
+
+    let defaultAccountId: string | null = null;
+    if (existingAccounts.length === 0) {
+      const hdfc = await prisma.financialAccount.create({
+        data: {
+          userId,
+          name: "HDFC Salary Account",
+          type: "SAVINGS",
+          institution: "HDFC Bank",
+          accountNumberLast4: "4092",
+          balance: 145000.00,
+          currency: "INR",
+        },
+      });
+      defaultAccountId = hdfc.id;
+    } else {
+      defaultAccountId = existingAccounts[0].id;
+    }
+
     // Ensure sample goals exist for the user
-    const existingGoals = await prisma.financialGoal.findMany({
+    const existingGoals = await prisma.savingsGoal.findMany({
       where: { userId },
     });
 
     if (existingGoals.length === 0) {
-      await prisma.financialGoal.createMany({
+      await prisma.savingsGoal.createMany({
         data: [
           {
             userId,
             name: "Emergency Reserve (6 Months)",
-            targetAmount: 15000.00,
-            currentAmount: 9500.00,
+            targetAmount: 300000.00,
+            currentAmount: 195000.00,
             categoryType: "EMERGENCY_FUND",
             status: "ACTIVE",
             targetDate: new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000),
           },
           {
             userId,
-            name: "Roth IRA Max Contribution",
-            targetAmount: 7000.00,
-            currentAmount: 4200.00,
+            name: "Annual PPF / Mutual Fund Milestone",
+            targetAmount: 150000.00,
+            currentAmount: 90000.00,
             categoryType: "RETIREMENT",
             status: "ACTIVE",
             targetDate: new Date(now.getTime() + 120 * 24 * 60 * 60 * 1000),
@@ -84,6 +107,7 @@ export async function POST() {
         ],
       });
     }
+
 
     return NextResponse.json({
       success: true,

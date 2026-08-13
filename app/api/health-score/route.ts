@@ -34,10 +34,11 @@ export async function GET() {
     });
 
     // Fetch user's emergency fund / savings goals to calculate cash buffer accurately
-    const savingsGoals = await prisma.financialGoal.findMany({
+    const savingsGoals = await prisma.savingsGoal.findMany({
       where: { userId, status: "ACTIVE" },
       select: { currentAmount: true },
     });
+
 
     const totalSavedInGoals = savingsGoals.reduce((sum, g) => sum + g.currentAmount, 0);
 

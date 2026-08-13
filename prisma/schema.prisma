@@ -8,21 +8,22 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String             @id @default(cuid())
+  name              String?
+  email             String             @unique
+  password          String?
+  image             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  transactions  Transaction[]
-  categories    Category[]
-  budgets       Budget[]
-  goals         FinancialGoal[]
-  healthScores  HealthScoreSnapshot[]
+  accounts          Account[]          // NextAuth OAuth accounts
+  sessions          Session[]          // NextAuth sessions
+  financialAccounts FinancialAccount[] // First-class user bank accounts/cards/wallets
+  transactions      Transaction[]
+  categories        Category[]
+  budgets           Budget[]
+  savingsGoals      SavingsGoal[]
+  healthScores      HealthScoreSnapshot[]
 }
 
 model Account {
@@ -60,15 +61,32 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model FinancialAccount {
+  id                 String        @id @default(cuid())
+  userId             String
+  name               String        // e.g. "HDFC Salary Account", "ICICI Credit Card", "Cash Wallet"
+  type               String        @default("SAVINGS") // CHECKING, SAVINGS, CREDIT_CARD, WALLET, INVESTMENT
+  institution        String?       // e.g. "HDFC Bank", "State Bank of India", "ICICI"
+  accountNumberLast4 String?       // e.g. "4092"
+  balance            Float         @default(0)
+  currency           String        @default("INR")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
 model Category {
   id          String   @id @default(cuid())
-  userId      String?  // null if system default category
+  userId      String?  // null if global default system category
   name        String
   type        String   @default("EXPENSE") // EXPENSE, INCOME, SAVINGS
   isEssential Boolean  @default(false)     // For Needs (50%) vs Wants (30%) calculation
   color       String   @default("#64748b")
   icon        String   @default("Tag")
-  budgetLimit Float?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -83,8 +101,8 @@ model Category {
 model CategoryKeyword {
   id         String   @id @default(cuid())
   categoryId String
-  keyword    String   // lowercased matching pattern
-  priority   Int      @default(0)
+  keyword    String   // lowercased matching keyword/pattern
+  priority   Int      @default(1)
 
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
@@ -93,36 +111,39 @@ model CategoryKeyword {
 }
 
 model Transaction {
-  id            String    @id @default(cuid())
+  id            String            @id @default(cuid())
   userId        String
+  accountId     String?           // Linked to first-class FinancialAccount
   categoryId    String?
-  amount        Float
-  type          String    @default("EXPENSE") // EXPENSE, INCOME, TRANSFER
+  amount        Float             // Stored in INR
+  type          String            @default("EXPENSE") // EXPENSE, INCOME, TRANSFER
   date          DateTime
-  description   String    // Raw string from statement/input
-  merchant      String?   // Cleaned/normalized entity name
+  description   String            // Raw transaction string
+  merchant      String?           // Cleaned/normalized merchant name
   notes         String?
-  source        String    @default("MANUAL")  // MANUAL, CSV_IMPORT, DEMO_SEED
+  source        String            @default("MANUAL")  // MANUAL, CSV_IMPORT, DEMO_SEED
   importBatchId String?
-  isRecurring   Boolean   @default(false)
-  reasoning     String?   // Categorization rule/keyword audit trail
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isRecurring   Boolean           @default(false)
+  reasoning     String?           // Deterministic rule engine reasoning trail
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  financialAccount FinancialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  category         Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
   @@index([userId, categoryId])
+  @@index([userId, accountId])
   @@index([userId, type])
 }
 
 model Budget {
   id          String    @id @default(cuid())
   userId      String
-  categoryId  String?   // null if global monthly expense budget
+  categoryId  String?   // null for total monthly spending cap
   period      String    @default("MONTHLY") // MONTHLY, WEEKLY
-  amount      Float
+  amount      Float     // Monthly limit in INR
   month       Int       // 1-12
   year        Int       // e.g. 2026
   createdAt   DateTime  @default(now())
@@ -134,14 +155,14 @@ model Budget {
   @@index([userId, year, month])
 }
 
-model FinancialGoal {
+model SavingsGoal {
   id            String    @id @default(cuid())
   userId        String
   name          String
-  targetAmount  Float
-  currentAmount Float     @default(0)
+  targetAmount  Float     // Target in INR
+  currentAmount Float     @default(0) // Current saved in INR
   targetDate    DateTime?
-  categoryType  String    @default("EMERGENCY_FUND") // EMERGENCY_FUND, SAVINGS, DEBT_PAYOFF, RETIREMENT, CUSTOM
+  categoryType  String    @default("EMERGENCY_FUND") // EMERGENCY_FUND, RETIREMENT, WEALTH_CREATION, MAJOR_PURCHASE, CUSTOM
   status        String    @default("ACTIVE") // ACTIVE, COMPLETED, PAUSED
   notes         String?
   createdAt     DateTime  @default(now())
@@ -158,13 +179,13 @@ model HealthScoreSnapshot {
   score           Int      // 0 - 100
   savingsRate     Float    // % savings out of income
   essentialRatio  Float    // % essential needs out of income
-  discretionRatio Float    // % discretionary wants out of income
-  bufferMonths    Float    // emergency buffer in months
-  monthlyIncome   Float
-  monthlyExpense  Float
-  netSavings      Float
-  insightsJson    String   // Computed plain-language insight cards JSON
-  breakdownJson   String   // Detailed weighted score breakdown JSON
+  discretionaryRatio Float // % discretionary wants out of income
+  bufferMonths    Float    // emergency runway in months
+  monthlyIncome   Float    // Monthly income in INR
+  monthlyExpense  Float    // Monthly expense in INR
+  netSavings      Float    // Net monthly savings in INR
+  insightsJson    String   // Plain-language computed insights JSON
+  breakdownJson   String   // Weighted health score breakdown JSON
   calculatedAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
