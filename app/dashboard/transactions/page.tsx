@@ -83,6 +83,28 @@ export default function TransactionsPage() {
     }
   };
 
+  const [isClassifyingLLM, setIsClassifyingLLM] = useState(false);
+  const [llmMetrics, setLlmMetrics] = useState<any>(null);
+
+  const handleRunClaudeClassification = async () => {
+    setIsClassifyingLLM(true);
+    try {
+      const res = await fetch("/api/transactions/classify-llm", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setLlmMetrics(data.metrics);
+        fetchTransactions();
+      } else {
+        alert(data.error || "LLM classification failed");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to connect to Claude LLM service.");
+    } finally {
+      setIsClassifyingLLM(false);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-slate-50">
       <Header
@@ -99,17 +121,29 @@ export default function TransactionsPage() {
               Transactions & Categorization
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Deterministic rule categorization with transparent reasoning trails
+              Counterparty deduplication & Claude 3.5 LLM semantic classification layer
             </p>
           </div>
 
           <div className="flex items-center space-x-2">
             <button
+              onClick={handleRunClaudeClassification}
+              disabled={isClassifyingLLM || transactions.length === 0}
+              className="inline-flex items-center px-3 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-xs font-semibold shadow-sm transition disabled:opacity-50"
+            >
+              {isClassifyingLLM ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-purple-200" />
+              )}
+              <span>{isClassifyingLLM ? "Classifying..." : "Run Claude LLM"}</span>
+            </button>
+            <button
               onClick={() => setIsUploadModalOpen(true)}
               className="inline-flex items-center px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm"
             >
               <Upload className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-              <span>Import Bank CSV</span>
+              <span>Import Statement</span>
             </button>
             <button
               onClick={() => setIsAddModalOpen(true)}
@@ -120,6 +154,35 @@ export default function TransactionsPage() {
             </button>
           </div>
         </div>
+
+        {/* Claude Metrics Banner if executed */}
+        {llmMetrics && (
+          <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 text-purple-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-4 h-4 text-purple-700 flex-shrink-0" />
+              <div>
+                <span className="font-bold">Claude LLM Batch Classification Complete: </span>
+                <span>
+                  Collapsed <strong>{llmMetrics.totalTransactions}</strong> raw transactions into{" "}
+                  <strong>{llmMetrics.distinctCounterparties}</strong> distinct counterparties using only{" "}
+                  <strong>{llmMetrics.apiCallsMade}</strong> API call(s).
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="px-2.5 py-1 rounded-full bg-purple-100 font-bold text-purple-800 text-[11px]">
+                {llmMetrics.reductionPercentage}% Token Reduction
+              </span>
+              <button
+                onClick={() => setLlmMetrics(null)}
+                className="text-purple-600 hover:text-purple-900 font-semibold text-[11px]"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
 
         {/* Filters and Search Bar */}
         <div className="glass-card p-4 rounded-2xl border border-slate-200/80 shadow-subtle grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
