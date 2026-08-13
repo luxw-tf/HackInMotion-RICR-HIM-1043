@@ -37,3 +37,8 @@ This document records the architectural and design choices made during the devel
 ## 6. Bank Statement Importer Architecture
 - **Choice**: Client-side resilient CSV stream parsing with auto-detection of column variants across major banks (Chase, BoA, Citi, Wells Fargo) + live preview before batch commit.
 - **Rationale**: Ensures malformed files never crash the app and users can review extracted transactions before saving.
+
+## 7. Default Currency & Localization
+- **Choice**: Indian Rupee (`₹` / INR) as the primary currency across all dashboard views, charts, budget caps, goals, seed data, and formatting utilities with `en-IN` numbering notation.
+- **Rationale**: Native support for Indian banking statements, UPI, and financial planning benchmarks (e.g. PPF, mutual fund SIPs, rent transfers).
+

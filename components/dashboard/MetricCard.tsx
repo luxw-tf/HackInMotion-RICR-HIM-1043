@@ -47,10 +47,11 @@ export function MetricCard({ breakdown }: MetricCardProps) {
       data: breakdown.cashflowConsistency,
       color: breakdown.cashflowConsistency.value >= 0 ? "bg-emerald-600" : "bg-rose-600",
       lightBg: breakdown.cashflowConsistency.value >= 0 ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200",
-      displayValue: `$${breakdown.cashflowConsistency.value.toLocaleString()}`,
+      displayValue: `₹${breakdown.cashflowConsistency.value.toLocaleString("en-IN")}`,
       max: 100,
       barWidth: Math.min(100, breakdown.cashflowConsistency.score),
     },
+
   ];
 
   return (

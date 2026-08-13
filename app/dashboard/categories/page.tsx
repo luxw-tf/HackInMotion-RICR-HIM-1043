@@ -145,10 +145,11 @@ export default function CategoriesPage() {
                 type="number"
                 value={testAmt}
                 onChange={(e) => setTestAmt(e.target.value)}
-                placeholder="Amount ($)"
+                placeholder="Amount (₹)"
                 className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
               />
             </div>
+
           </div>
 
           {testResult && (

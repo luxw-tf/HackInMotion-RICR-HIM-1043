@@ -5,6 +5,9 @@ import prisma from "@/lib/prisma";
 import { SAMPLE_TRANSACTIONS } from "@/lib/sampleData";
 import { categorizeTransaction } from "@/lib/categorization/rules";
 
+export const dynamic = "force-dynamic";
+
+
 export async function POST() {
   try {
     const session = await getServerSession(authOptions);

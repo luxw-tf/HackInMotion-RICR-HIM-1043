@@ -141,7 +141,7 @@ export function AddTransactionModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                Amount ($)
+                Amount (₹)
               </label>
               <input
                 type="number"
@@ -149,10 +149,11 @@ export function AddTransactionModal({
                 required
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                placeholder="₹0.00"
                 className="mt-1 block w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
               />
             </div>
+
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                 Date

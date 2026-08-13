@@ -241,9 +241,10 @@ export default function TransactionsPage() {
                                 : "text-slate-900"
                             }`}
                           >
-                            {isIncome ? "+" : "-"}${tx.amount.toFixed(2)}
+                            {isIncome ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           </span>
                         </td>
+
                         <td className="py-3 px-4 text-center">
                           <button
                             onClick={() => handleDelete(tx.id)}

@@ -81,21 +81,22 @@ export function UploadStatementModal({
           let numAmt = 0;
 
           if (amtKey && row[amtKey] !== undefined) {
-            const rawAmtStr = String(row[amtKey]).replace(/[\$,]/g, "").trim();
+            const rawAmtStr = String(row[amtKey]).replace(/[₹\$,]/g, "").trim();
             numAmt = parseFloat(rawAmtStr) || 0;
           }
 
-          // Check if separate Debit and Credit columns exist (e.g. BoA / Wells Fargo)
-          const debitKey = keys.find((k) => /debit/i.test(k));
-          const creditKey = keys.find((k) => /credit/i.test(k));
+          // Check if separate Debit and Credit columns exist (e.g. BoA / Wells Fargo / HDFC / SBI)
+          const debitKey = keys.find((k) => /debit|withdrawal/i.test(k));
+          const creditKey = keys.find((k) => /credit|deposit/i.test(k));
 
           if (debitKey && row[debitKey] && !amtKey) {
-            const debitAmt = parseFloat(String(row[debitKey]).replace(/[\$,]/g, "")) || 0;
+            const debitAmt = parseFloat(String(row[debitKey]).replace(/[₹\$,]/g, "")) || 0;
             if (debitAmt > 0) numAmt = -Math.abs(debitAmt);
           } else if (creditKey && row[creditKey] && !amtKey) {
-            const creditAmt = parseFloat(String(row[creditKey]).replace(/[\$,]/g, "")) || 0;
+            const creditAmt = parseFloat(String(row[creditKey]).replace(/[₹\$,]/g, "")) || 0;
             if (creditAmt > 0) numAmt = Math.abs(creditAmt);
           }
+
 
           if (descVal && descVal.trim() && !isNaN(numAmt) && numAmt !== 0) {
             const isPositive = numAmt > 0;
@@ -229,12 +230,13 @@ export function UploadStatementModal({
                             {row.type}
                           </span>
                         </td>
-                        <td className="py-2 px-3 text-right font-bold text-slate-900">${row.amount.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-right font-bold text-slate-900">₹{row.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+
               {parsedRows.length > 10 && (
                 <p className="text-[11px] text-slate-400 mt-1 italic text-right">
                   + {parsedRows.length - 10} more rows ready for deterministic import

@@ -33,7 +33,7 @@ export function RecurringSubs({ subscriptions }: RecurringSubsProps) {
         <div className="text-right">
           <span className="text-xs text-slate-400 block font-medium">Monthly Overhead</span>
           <span className="text-sm font-bold text-slate-900 font-display">
-            ~${Math.round(totalMonthlyCommitment)}/mo
+            ~₹{Math.round(totalMonthlyCommitment).toLocaleString("en-IN")}/mo
           </span>
         </div>
       </div>
@@ -56,12 +56,13 @@ export function RecurringSubs({ subscriptions }: RecurringSubsProps) {
             </div>
             <div className="text-right">
               <span className="text-xs font-bold text-slate-900 font-display">
-                ${sub.amount.toFixed(2)}
+                ₹{sub.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
         ))}
       </div>
+
     </div>
   );
 }

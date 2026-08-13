@@ -10,7 +10,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: false,
     color: "#059669",
     icon: "TrendingUp",
-    keywords: ["salary", "payroll", "direct dep", "direct deposit", "paycheck", "wages", "dividend", "bonus", "freelance", "stripe payout", "venmo cashout", "refund"],
+    keywords: ["salary", "payroll", "direct dep", "direct deposit", "paycheck", "wages", "dividend", "bonus", "freelance", "stripe payout", "upi credit", "refund", "infosys", "tcs", "wipro"],
   },
   {
     name: "Housing",
@@ -18,7 +18,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: true,
     color: "#0284c7",
     icon: "Home",
-    keywords: ["rent", "mortgage", "hoa", "property tax", "apartment", "landlord", "realty", "leasing", "maintenance fee"],
+    keywords: ["rent", "mortgage", "hoa", "property tax", "apartment", "landlord", "realty", "leasing", "prestige", "sobha", "maintenance fee"],
   },
   {
     name: "Food & Dining",
@@ -26,7 +26,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: true,
     color: "#f59e0b",
     icon: "Utensils",
-    keywords: ["grocery", "supermarket", "trader joe", "whole foods", "safeway", "kroger", "costco", "walmart", "restaurant", "cafe", "coffee", "starbucks", "mcdonald", "doordash", "ubereats", "chipotle"],
+    keywords: ["grocery", "supermarket", "blinkit", "zepto", "swiggy", "zomato", "reliance fresh", "dmart", "nature basket", "restaurant", "cafe", "coffee", "starbucks", "mcdonald", "third wave", "burger king"],
   },
   {
     name: "Transportation",
@@ -34,7 +34,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: true,
     color: "#6366f1",
     icon: "Car",
-    keywords: ["gas", "fuel", "chevron", "shell", "exxon", "uber", "lyft", "transit", "metro", "subway", "train", "parking", "toll", "auto insurance", "geico"],
+    keywords: ["fuel", "petrol", "diesel", "indian oil", "bharat pet", "shell", "hp fuel", "uber", "ola", "rapido", "metro", "fastag", "toll", "auto insurance", "hdfc ergo", "bajaj allianz"],
   },
   {
     name: "Utilities & Bills",
@@ -42,7 +42,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: true,
     color: "#0d9488",
     icon: "Zap",
-    keywords: ["electric", "power", "energy", "pge", "water utility", "gas co", "internet", "wifi", "comcast", "xfinity", "verizon", "at&t", "t-mobile", "trash"],
+    keywords: ["electric", "power", "bescom", "tneb", "tatapower", "water utility", "gas co", "internet", "wifi", "airtel", "jio", "act fibernet", "vodafone", "trash"],
   },
   {
     name: "Healthcare",
@@ -50,7 +50,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: true,
     color: "#e11d48",
     icon: "HeartPulse",
-    keywords: ["pharmacy", "cvs", "walgreens", "hospital", "clinic", "medical", "dental", "dentist", "doctor", "health insurance", "optometry"],
+    keywords: ["pharmacy", "apollo", "medplus", "1mg", "practo", "hospital", "clinic", "medical", "dental", "dentist", "doctor", "health insurance", "care health"],
   },
   {
     name: "Entertainment & Leisure",
@@ -58,7 +58,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: false,
     color: "#8b5cf6",
     icon: "Film",
-    keywords: ["netflix", "spotify", "apple music", "hulu", "disney", "hbo", "cinema", "amc", "movies", "steam", "playstation", "xbox", "gym", "fitness", "equinox", "concert"],
+    keywords: ["netflix", "spotify", "hotstar", "prime video", "bookmyshow", "pvr", "inox", "cinema", "movies", "steam", "playstation", "cult fit", "gym", "fitness", "concert"],
   },
   {
     name: "Shopping & Personal",
@@ -66,7 +66,7 @@ const DEFAULT_CATEGORIES = [
     isEssential: false,
     color: "#64748b",
     icon: "ShoppingBag",
-    keywords: ["amazon", "amzn", "clothing", "apparel", "zara", "nike", "apple store", "best buy", "electronics", "salon", "barber", "target", "ikea"],
+    keywords: ["amazon", "flipkart", "myntra", "ajio", "zara", "h&m", "nike", "tata cliq", "nykaa", "salon", "urban company", "barber", "electronics", "croma"],
   },
   {
     name: "Savings & Investments",
@@ -74,70 +74,70 @@ const DEFAULT_CATEGORIES = [
     isEssential: false,
     color: "#10b981",
     icon: "PiggyBank",
-    keywords: ["vanguard", "fidelity", "schwab", "robinhood", "401k", "ira contribution", "savings transfer", "hysa", "emergency fund", "investment"],
+    keywords: ["zerodha", "groww", "kuvera", "hdfc mutual", "sbi mutual", "icici direct", "ppf", "nps", "sip", "fixed deposit", "emergency fund", "hysa", "savings transfer", "investment"],
   },
 ];
 
 const SAMPLE_TRANSACTIONS = [
-  // Inflows
-  { desc: "ACME TECH CORP DIRECT DEPOSIT PAYROLL", amount: 3400.00, type: "INCOME", cat: "Income", daysAgo: 1, isRecurring: true, reason: "Rule matched keyword: payroll" },
-  { desc: "ACME TECH CORP DIRECT DEPOSIT PAYROLL", amount: 3400.00, type: "INCOME", cat: "Income", daysAgo: 15, isRecurring: true, reason: "Rule matched keyword: payroll" },
-  { desc: "ACME TECH CORP DIRECT DEPOSIT PAYROLL", amount: 3400.00, type: "INCOME", cat: "Income", daysAgo: 31, isRecurring: true, reason: "Rule matched keyword: payroll" },
-  { desc: "ACME TECH CORP DIRECT DEPOSIT PAYROLL", amount: 3400.00, type: "INCOME", cat: "Income", daysAgo: 45, isRecurring: true, reason: "Rule matched keyword: payroll" },
-  { desc: "STRIPE PAYOUT FREELANCE DESIGN INVOICE #108", amount: 650.00, type: "INCOME", cat: "Income", daysAgo: 12, reason: "Rule matched keyword: freelance" },
-  { desc: "DIVIDEND REINVESTMENT VANGUARD VTSAX", amount: 48.50, type: "INCOME", cat: "Income", daysAgo: 28, reason: "Rule matched keyword: dividend" },
+  // Inflows (INR)
+  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 1, isRecurring: true, reason: "Rule matched keyword: salary" },
+  { desc: "FREELANCE UI DESIGN CLIENT PAYOUT", amount: 24000.00, type: "INCOME", cat: "Income", daysAgo: 12, reason: "Rule matched keyword: freelance" },
+  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 31, isRecurring: true, reason: "Rule matched keyword: salary" },
+  { desc: "HDFC MUTUAL FUND DIVIDEND PAYOUT", amount: 3850.00, type: "INCOME", cat: "Income", daysAgo: 28, reason: "Rule matched keyword: dividend" },
+  { desc: "INFOSYS TECH CORP DIRECT SALARY CREDIT", amount: 125000.00, type: "INCOME", cat: "Income", daysAgo: 61, isRecurring: true, reason: "Rule matched keyword: salary" },
 
   // Housing
-  { desc: "AVALON BAY APARTMENTS MONTHLY RENT", amount: 1950.00, type: "EXPENSE", cat: "Housing", daysAgo: 2, isRecurring: true, reason: "Rule matched keyword: rent" },
-  { desc: "AVALON BAY APARTMENTS MONTHLY RENT", amount: 1950.00, type: "EXPENSE", cat: "Housing", daysAgo: 32, isRecurring: true, reason: "Rule matched keyword: rent" },
-  { desc: "AVALON BAY APARTMENTS MONTHLY RENT", amount: 1950.00, type: "EXPENSE", cat: "Housing", daysAgo: 62, isRecurring: true, reason: "Rule matched keyword: rent" },
+  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 2, isRecurring: true, reason: "Rule matched keyword: rent" },
+  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 32, isRecurring: true, reason: "Rule matched keyword: rent" },
+  { desc: "PRESTIGE APARTMENTS MONTHLY RENT TRANSFER", amount: 32000.00, type: "EXPENSE", cat: "Housing", daysAgo: 62, isRecurring: true, reason: "Rule matched keyword: rent" },
 
   // Utilities
-  { desc: "PACIFIC GAS & ELECTRIC UTILITY CO", amount: 112.40, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 5, isRecurring: true, reason: "Rule matched keyword: electric" },
-  { desc: "COMCAST XFINITY HIGH SPEED INTERNET", amount: 79.99, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 8, isRecurring: true, reason: "Rule matched keyword: internet" },
-  { desc: "VERIZON WIRELESS MONTHLY PLAN", amount: 85.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 10, isRecurring: true, reason: "Rule matched keyword: verizon" },
-  { desc: "PACIFIC GAS & ELECTRIC UTILITY CO", amount: 108.15, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 35, isRecurring: true, reason: "Rule matched keyword: electric" },
-  { desc: "COMCAST XFINITY HIGH SPEED INTERNET", amount: 79.99, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 38, isRecurring: true, reason: "Rule matched keyword: internet" },
-  { desc: "VERIZON WIRELESS MONTHLY PLAN", amount: 85.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 40, isRecurring: true, reason: "Rule matched keyword: verizon" },
+  { desc: "BESCOM ELECTRICITY BILL PAYMENT", amount: 2850.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 5, isRecurring: true, reason: "Rule matched keyword: bescom" },
+  { desc: "AIRTEL FIBER BROADBAND HIGH SPEED INTERNET", amount: 1199.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 8, isRecurring: true, reason: "Rule matched keyword: airtel" },
+  { desc: "JIO POSTPAID MOBILE FAMILY PLAN", amount: 999.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 10, isRecurring: true, reason: "Rule matched keyword: jio" },
+  { desc: "BESCOM ELECTRICITY BILL PAYMENT", amount: 2640.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 35, isRecurring: true, reason: "Rule matched keyword: bescom" },
+  { desc: "AIRTEL FIBER BROADBAND HIGH SPEED INTERNET", amount: 1199.00, type: "EXPENSE", cat: "Utilities & Bills", daysAgo: 38, isRecurring: true, reason: "Rule matched keyword: airtel" },
 
-  // Groceries & Food
-  { desc: "TRADER JOE'S #104 GROCERY STORE", amount: 94.30, type: "EXPENSE", cat: "Food & Dining", daysAgo: 3, reason: "Rule matched keyword: trader joe" },
-  { desc: "WHOLE FOODS MARKET ORGANIC PRODUCE", amount: 128.45, type: "EXPENSE", cat: "Food & Dining", daysAgo: 7, reason: "Rule matched keyword: whole foods" },
-  { desc: "SAFEWAY STORE #3829 GROCERY", amount: 64.20, type: "EXPENSE", cat: "Food & Dining", daysAgo: 14, reason: "Rule matched keyword: safeway" },
-  { desc: "BLUE BOTTLE COFFEE CAFE", amount: 6.75, type: "EXPENSE", cat: "Food & Dining", daysAgo: 4, reason: "Rule matched keyword: cafe" },
-  { desc: "CHIPOTLE MEXICAN GRILL #84", amount: 16.40, type: "EXPENSE", cat: "Food & Dining", daysAgo: 6, reason: "Rule matched keyword: chipotle" },
-  { desc: "DOORDASH RESTAURANT DELIVERY", amount: 42.80, type: "EXPENSE", cat: "Food & Dining", daysAgo: 11, reason: "Rule matched keyword: doordash" },
-  { desc: "TRADER JOE'S #104 GROCERY STORE", amount: 110.15, type: "EXPENSE", cat: "Food & Dining", daysAgo: 18, reason: "Rule matched keyword: trader joe" },
-  { desc: "WHOLE FOODS MARKET", amount: 89.60, type: "EXPENSE", cat: "Food & Dining", daysAgo: 24, reason: "Rule matched keyword: whole foods" },
+  // Food & Dining
+  { desc: "BLINKIT GROCERIES EXPRESS DELIVERY", amount: 1450.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 3, reason: "Rule matched keyword: blinkit" },
+  { desc: "RELIANCE FRESH SUPERMARKET VEGETABLES", amount: 3280.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 7, reason: "Rule matched keyword: reliance fresh" },
+  { desc: "SWIGGY INSTAMART ESSENTIALS", amount: 890.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 14, reason: "Rule matched keyword: swiggy" },
+  { desc: "THIRD WAVE COFFEE CAFE", amount: 480.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 4, reason: "Rule matched keyword: cafe" },
+  { desc: "ZOMATO RESTAURANT DINING", amount: 1650.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 6, reason: "Rule matched keyword: zomato" },
+  { desc: "SWIGGY GOURMET FOOD DELIVERY", amount: 720.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 11, reason: "Rule matched keyword: swiggy" },
+  { desc: "NATURE BASKET ORGANIC SUPERMARKET", amount: 2850.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 18, reason: "Rule matched keyword: supermarket" },
+  { desc: "STARBUCKS COFFEE ROASTERS", amount: 560.00, type: "EXPENSE", cat: "Food & Dining", daysAgo: 22, reason: "Rule matched keyword: starbucks" },
 
   // Transportation
-  { desc: "CHEVRON GAS STATION FUEL PUMP #4", amount: 54.20, type: "EXPENSE", cat: "Transportation", daysAgo: 4, reason: "Rule matched keyword: gas" },
-  { desc: "UBER TRIP RIDERS SAN FRANCISCO", amount: 24.80, type: "EXPENSE", cat: "Transportation", daysAgo: 9, reason: "Rule matched keyword: uber" },
-  { desc: "BAY AREA FASTRAK BRIDGE TOLL", amount: 7.00, type: "EXPENSE", cat: "Transportation", daysAgo: 13, reason: "Rule matched keyword: toll" },
-  { desc: "GEICO AUTO INSURANCE PREMIUM", amount: 135.00, type: "EXPENSE", cat: "Transportation", daysAgo: 16, isRecurring: true, reason: "Rule matched keyword: auto insurance" },
+  { desc: "INDIAN OIL PETROL FUEL PUMP", amount: 3500.00, type: "EXPENSE", cat: "Transportation", daysAgo: 4, reason: "Rule matched keyword: fuel" },
+  { desc: "UBER RIDE BANGALORE COMMUTE", amount: 420.00, type: "EXPENSE", cat: "Transportation", daysAgo: 9, reason: "Rule matched keyword: uber" },
+  { desc: "FASTAG TOLL PLAZA HIGHWAY", amount: 280.00, type: "EXPENSE", cat: "Transportation", daysAgo: 13, reason: "Rule matched keyword: fastag" },
+  { desc: "HDFC ERGO CAR INSURANCE PREMIUM", amount: 3800.00, type: "EXPENSE", cat: "Transportation", daysAgo: 16, isRecurring: true, reason: "Rule matched keyword: auto insurance" },
+  { desc: "SHELL PETROL FUEL PUMP", amount: 3200.00, type: "EXPENSE", cat: "Transportation", daysAgo: 25, reason: "Rule matched keyword: fuel" },
 
   // Healthcare
-  { desc: "CVS PHARMACY PRESCRIPTION REFILL", amount: 28.50, type: "EXPENSE", cat: "Healthcare", daysAgo: 11, reason: "Rule matched keyword: cvs" },
-  { desc: "ONE MEDICAL ANNUAL MEMBERSHIP / COPAY", amount: 35.00, type: "EXPENSE", cat: "Healthcare", daysAgo: 26, reason: "Rule matched keyword: medical" },
+  { desc: "APOLLO PHARMACY HEALTH MEDICINES", amount: 1450.00, type: "EXPENSE", cat: "Healthcare", daysAgo: 11, reason: "Rule matched keyword: apollo" },
+  { desc: "PRACTO DOCTOR CONSULTATION COPAY", amount: 800.00, type: "EXPENSE", cat: "Healthcare", daysAgo: 26, reason: "Rule matched keyword: practo" },
 
   // Entertainment
-  { desc: "NETFLIX.COM MONTHLY 4K STREAMING", amount: 22.99, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 6, isRecurring: true, reason: "Rule matched keyword: netflix" },
-  { desc: "SPOTIFY PREMIUM FAMILY PLAN", amount: 16.99, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 12, isRecurring: true, reason: "Rule matched keyword: spotify" },
-  { desc: "EQUINOX FITNESS GYM MONTHLY", amount: 180.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 22, isRecurring: true, reason: "Rule matched keyword: gym" },
+  { desc: "NETFLIX INDIA MONTHLY 4K STREAMING", amount: 649.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 6, isRecurring: true, reason: "Rule matched keyword: netflix" },
+  { desc: "SPOTIFY PREMIUM FAMILY PLAN", amount: 179.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 12, isRecurring: true, reason: "Rule matched keyword: spotify" },
+  { desc: "CULT FIT GYM & FITNESS MEMBERSHIP", amount: 3200.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 22, isRecurring: true, reason: "Rule matched keyword: gym" },
+  { desc: "BOOKMYSHOW PVR CINEMA MOVIE TICKETS", amount: 980.00, type: "EXPENSE", cat: "Entertainment & Leisure", daysAgo: 17, reason: "Rule matched keyword: bookmyshow" },
 
   // Shopping
-  { desc: "AMAZON.COM*RETAIL ORDER #402", amount: 62.40, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 7, reason: "Rule matched keyword: amazon" },
-  { desc: "UNIQLO APPAREL CLOTHING STORE", amount: 89.00, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 19, reason: "Rule matched keyword: clothing" },
+  { desc: "AMAZON INDIA RETAIL APPAREL ORDER", amount: 2890.00, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 7, reason: "Rule matched keyword: amazon" },
+  { desc: "MYNTRA FASHION CLOTHING", amount: 3450.00, type: "EXPENSE", cat: "Shopping & Personal", daysAgo: 19, reason: "Rule matched keyword: clothing" },
 
   // Savings
-  { desc: "VANGUARD INDEX FUND AUTO-DEPOSIT", amount: 1000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 2, isRecurring: true, reason: "Rule matched keyword: vanguard" },
-  { desc: "HIGH YIELD SAVINGS EMERGENCY FUND TRANSFER", amount: 500.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 15, isRecurring: true, reason: "Rule matched keyword: emergency fund" },
-  { desc: "VANGUARD INDEX FUND AUTO-DEPOSIT", amount: 1000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 32, isRecurring: true, reason: "Rule matched keyword: vanguard" },
-  { desc: "HIGH YIELD SAVINGS EMERGENCY FUND TRANSFER", amount: 500.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 45, isRecurring: true, reason: "Rule matched keyword: emergency fund" },
+  { desc: "ZERODHA NIFTY 50 INDEX SIP AUTO-DEPOSIT", amount: 30000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 2, isRecurring: true, reason: "Rule matched keyword: zerodha" },
+  { desc: "HDFC HIGH YIELD EMERGENCY SAVINGS TRANSFER", amount: 15000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 15, isRecurring: true, reason: "Rule matched keyword: emergency fund" },
+  { desc: "ZERODHA NIFTY 50 INDEX SIP AUTO-DEPOSIT", amount: 30000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 32, isRecurring: true, reason: "Rule matched keyword: zerodha" },
+  { desc: "HDFC HIGH YIELD EMERGENCY SAVINGS TRANSFER", amount: 15000.00, type: "SAVINGS", cat: "Savings & Investments", daysAgo: 45, isRecurring: true, reason: "Rule matched keyword: emergency fund" },
 ];
 
 async function seed() {
-  console.log("🌱 Seeding database...");
+  console.log("🌱 Seeding database with INR currency...");
 
   // 1. Create Default Categories & Keywords
   const categoryRecordMap = new Map();
@@ -226,7 +226,7 @@ async function seed() {
     });
   }
 
-  // 4. Create demo financial goals
+  // 4. Create demo financial goals in INR
   await prisma.financialGoal.deleteMany({
     where: { userId: demoUser.id },
   });
@@ -236,17 +236,17 @@ async function seed() {
       {
         userId: demoUser.id,
         name: "6-Month Emergency Cushion",
-        targetAmount: 15000.00,
-        currentAmount: 9500.00,
+        targetAmount: 300000.00,
+        currentAmount: 195000.00,
         categoryType: "EMERGENCY_FUND",
         status: "ACTIVE",
         targetDate: new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000),
       },
       {
         userId: demoUser.id,
-        name: "Roth IRA Annual Max",
-        targetAmount: 7000.00,
-        currentAmount: 4000.00,
+        name: "Annual PPF / Mutual Fund Milestone",
+        targetAmount: 150000.00,
+        currentAmount: 90000.00,
         categoryType: "RETIREMENT",
         status: "ACTIVE",
         targetDate: new Date(now.getTime() + 120 * 24 * 60 * 60 * 1000),
@@ -254,7 +254,7 @@ async function seed() {
     ],
   });
 
-  // 5. Create demo budgets
+  // 5. Create demo budgets in INR
   await prisma.budget.deleteMany({
     where: { userId: demoUser.id },
   });
@@ -270,7 +270,7 @@ async function seed() {
       data: {
         userId: demoUser.id,
         categoryId: foodCat.id,
-        amount: 650.00,
+        amount: 18000.00,
         month: currentMonth,
         year: currentYear,
       },
@@ -282,14 +282,14 @@ async function seed() {
       data: {
         userId: demoUser.id,
         categoryId: entertainmentCat.id,
-        amount: 300.00,
+        amount: 8000.00,
         month: currentMonth,
         year: currentYear,
       },
     });
   }
 
-  console.log("✅ Seed completed successfully!");
+  console.log("✅ Seed completed successfully with INR default currency!");
 }
 
 seed()

@@ -94,13 +94,13 @@ export function ScoreGauge({ data }: ScoreGaugeProps) {
         <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
           <span className="text-[10px] text-slate-400 block uppercase font-medium">Income/Mo</span>
           <span className="font-semibold text-slate-800 text-xs sm:text-sm">
-            ${data.monthlyIncome.toLocaleString()}
+            ₹{data.monthlyIncome.toLocaleString("en-IN")}
           </span>
         </div>
         <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
           <span className="text-[10px] text-slate-400 block uppercase font-medium">Expenses/Mo</span>
           <span className="font-semibold text-slate-800 text-xs sm:text-sm">
-            ${data.monthlyExpenses.toLocaleString()}
+            ₹{data.monthlyExpenses.toLocaleString("en-IN")}
           </span>
         </div>
         <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
@@ -110,6 +110,7 @@ export function ScoreGauge({ data }: ScoreGaugeProps) {
           </span>
         </div>
       </div>
+
     </div>
   );
 }

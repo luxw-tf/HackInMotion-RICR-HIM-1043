@@ -178,7 +178,7 @@ export default function BudgetsGoalsPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Monthly Limit ($)
+                  Monthly Limit (₹)
                 </label>
                 <input
                   type="number"
@@ -186,7 +186,7 @@ export default function BudgetsGoalsPage() {
                   required
                   value={budgetAmount}
                   onChange={(e) => setBudgetAmount(e.target.value)}
-                  placeholder="e.g. 600"
+                  placeholder="e.g. 15000"
                   className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-800"
                 />
               </div>
@@ -248,10 +248,10 @@ export default function BudgetsGoalsPage() {
 
                     <div className="mt-3 flex items-baseline justify-between">
                       <span className="text-xl font-bold font-display text-slate-900">
-                        ${b.spent.toLocaleString()}
+                        ₹{b.spent.toLocaleString("en-IN")}
                       </span>
                       <span className="text-xs text-slate-400 font-medium">
-                        Cap: ${b.amount.toLocaleString()}
+                        Cap: ₹{b.amount.toLocaleString("en-IN")}
                       </span>
                     </div>
 
@@ -270,8 +270,8 @@ export default function BudgetsGoalsPage() {
                     <span>{b.percentUsed}% consumed</span>
                     <span className={b.remaining < 0 ? "text-rose-600 font-semibold" : "text-emerald-700 font-medium"}>
                       {b.remaining < 0
-                        ? `$${Math.abs(b.remaining)} over limit`
-                        : `$${b.remaining} remaining`}
+                        ? `₹${Math.abs(b.remaining).toLocaleString("en-IN")} over limit`
+                        : `₹${b.remaining.toLocaleString("en-IN")} remaining`}
                     </span>
                   </div>
                 </div>
@@ -322,7 +322,7 @@ export default function BudgetsGoalsPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Target Amount ($)
+                  Target Amount (₹)
                 </label>
                 <input
                   type="number"
@@ -330,21 +330,21 @@ export default function BudgetsGoalsPage() {
                   required
                   value={goalTarget}
                   onChange={(e) => setGoalTarget(e.target.value)}
-                  placeholder="15000"
+                  placeholder="300000"
                   className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-800"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Current Saved ($)
+                  Current Saved (₹)
                 </label>
                 <input
                   type="number"
                   step="1"
                   value={goalCurrent}
                   onChange={(e) => setGoalCurrent(e.target.value)}
-                  placeholder="5000"
+                  placeholder="150000"
                   className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-800"
                 />
               </div>
@@ -399,14 +399,14 @@ export default function BudgetsGoalsPage() {
                     <div className="mt-4 flex items-baseline justify-between">
                       <div>
                         <span className="text-2xl font-bold font-display text-slate-900">
-                          ${g.currentAmount.toLocaleString()}
+                          ₹{g.currentAmount.toLocaleString("en-IN")}
                         </span>
                         <span className="text-xs text-slate-400 font-medium ml-1.5">
-                          of ${g.targetAmount.toLocaleString()} target
+                          of ₹{g.targetAmount.toLocaleString("en-IN")} target
                         </span>
                       </div>
                       <span className="text-xs font-medium text-slate-500">
-                        ${g.remaining.toLocaleString()} to go
+                        ₹{g.remaining.toLocaleString("en-IN")} to go
                       </span>
                     </div>
 
@@ -425,7 +425,7 @@ export default function BudgetsGoalsPage() {
                     </span>
                     <button
                       onClick={async () => {
-                        const newAmt = prompt("Enter updated current amount saved ($):", String(g.currentAmount));
+                        const newAmt = prompt("Enter updated current amount saved (₹):", String(g.currentAmount));
                         if (newAmt !== null) {
                           const parsed = parseFloat(newAmt);
                           if (!isNaN(parsed) && parsed >= 0) {
@@ -448,6 +448,7 @@ export default function BudgetsGoalsPage() {
             </div>
           )}
         </div>
+
       </main>
     </div>
   );

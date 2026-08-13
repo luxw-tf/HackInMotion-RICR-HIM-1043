@@ -276,25 +276,25 @@ export function computeFinancialHealthScore(
       title: "Strong Savings Momentum",
       message: `You are retaining ${calculatedSavingsRate.toFixed(0)}% of net cash flow, surpassing the standard 20% wealth-building threshold.`,
       metric: `${calculatedSavingsRate.toFixed(0)}% savings rate`,
-      actionableStep: "Consider allocating excess surplus into diversified index funds or tax-advantaged retirement accounts.",
+      actionableStep: "Consider allocating excess surplus into diversified index funds, PPF, or mutual funds.",
     });
   } else if (calculatedSavingsRate > 0) {
     insights.push({
       id: "insight-savings-modest",
       type: "TIP",
       title: "Savings Rate Has Growth Room",
-      message: `You are saving ${calculatedSavingsRate.toFixed(0)}% of income. Increasing this to 20% adds an extra $${Math.round((monthlyIncome * 0.2) - (monthlyIncome * calculatedSavingsRate / 100))} monthly toward your safety cushion.`,
+      message: `You are saving ${calculatedSavingsRate.toFixed(0)}% of income. Increasing this to 20% adds an extra ₹${Math.round((monthlyIncome * 0.2) - (monthlyIncome * calculatedSavingsRate / 100)).toLocaleString("en-IN")} monthly toward your safety cushion.`,
       metric: `${calculatedSavingsRate.toFixed(0)}% (Target 20%)`,
-      actionableStep: "Set up an automatic recurring transfer on payday to pay yourself first.",
+      actionableStep: "Set up an automatic recurring SIP on payday to pay yourself first.",
     });
   } else {
     insights.push({
       id: "insight-savings-deficit",
       type: "WARNING",
       title: "Negative Monthly Net Cashflow",
-      message: `Outflows currently exceed inflows by $${Math.round(Math.abs(monthlyIncome - monthlyExpenses))}/month.`,
-      metric: `-$${Math.round(Math.abs(monthlyIncome - monthlyExpenses))}/mo`,
-      actionableStep: "Trim flexible dining, entertainment, and shopping expenses to stop the deficit.",
+      message: `Outflows currently exceed inflows by ₹${Math.round(Math.abs(monthlyIncome - monthlyExpenses)).toLocaleString("en-IN")}/month.`,
+      metric: `-₹${Math.round(Math.abs(monthlyIncome - monthlyExpenses)).toLocaleString("en-IN")}/mo`,
+      actionableStep: "Trim flexible dining, entertainment, and shopping expenses to restore positive cash flow.",
     });
   }
 
@@ -304,8 +304,8 @@ export function computeFinancialHealthScore(
     if (data.amounts.length >= 2) {
       // Check if amounts are nearly identical
       const avgAmt = data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length;
-      const allSimilar = data.amounts.every((a) => Math.abs(a - avgAmt) < 5);
-      if (allSimilar && avgAmt > 3) {
+      const allSimilar = data.amounts.every((a) => Math.abs(a - avgAmt) < 20);
+      if (allSimilar && avgAmt > 50) {
         recurringSubscriptions.push({
           merchant: merchant.charAt(0).toUpperCase() + merchant.slice(1),
           amount: Math.round(avgAmt * 100) / 100,
@@ -322,8 +322,8 @@ export function computeFinancialHealthScore(
       id: "insight-recurring-subs",
       type: "TIP",
       title: `${recurringSubscriptions.length} Recurring Subscriptions Detected`,
-      message: `We identified recurring monthly charges totaling ~$${Math.round(totalSubCost)}/month across streaming, utilities, and services.`,
-      metric: `$${Math.round(totalSubCost)}/mo committed`,
+      message: `We identified recurring monthly charges totaling ~₹${Math.round(totalSubCost).toLocaleString("en-IN")}/month across streaming, utilities, and services.`,
+      metric: `₹${Math.round(totalSubCost).toLocaleString("en-IN")}/mo committed`,
       actionableStep: "Audit recurring charges to cancel unutilized subscriptions or renegotiate provider plans.",
     });
   }
@@ -383,13 +383,14 @@ export function computeFinancialHealthScore(
         weight: 15,
         status: cashflowScore >= 80 ? "EXCELLENT" : cashflowScore >= 60 ? "HEALTHY" : cashflowScore >= 40 ? "FAIR" : "ATTENTION_NEEDED",
         value: Math.round(netMargin),
-        target: "> $0 Net",
+        target: "> ₹0 Net",
         label: "Net Cash Flow",
-        explanation: netMargin >= 0 ? `Net positive cashflow buffer of $${Math.round(netMargin)} maintained.` : `Deficit of $${Math.round(Math.abs(netMargin))} requires budget balancing.`,
+        explanation: netMargin >= 0 ? `Net positive cashflow buffer of ₹${Math.round(netMargin).toLocaleString("en-IN")} maintained.` : `Deficit of ₹${Math.round(Math.abs(netMargin)).toLocaleString("en-IN")} requires budget balancing.`,
       },
     },
     insights,
     recurringSubscriptions,
     categoryTotals,
   };
+
 }

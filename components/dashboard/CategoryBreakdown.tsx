@@ -51,7 +51,7 @@ export function CategoryBreakdown({ categories }: CategoryBreakdownProps) {
         <div className="text-right">
           <span className="text-xs text-slate-400 block font-medium">Total Outflow</span>
           <span className="text-base font-bold text-slate-900 font-display">
-            ${Math.round(totalExpense).toLocaleString()}
+            ₹{Math.round(totalExpense).toLocaleString("en-IN")}
           </span>
         </div>
       </div>
@@ -82,7 +82,7 @@ export function CategoryBreakdown({ categories }: CategoryBreakdownProps) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(val: number) => [`$${val.toLocaleString()}`, "Amount"]}
+                formatter={(val: number) => [`₹${val.toLocaleString("en-IN")}`, "Amount"]}
                 contentStyle={{
                   backgroundColor: "#ffffff",
                   borderRadius: "0.75rem",
@@ -137,7 +137,7 @@ export function CategoryBreakdown({ categories }: CategoryBreakdownProps) {
 
               <div className="text-right">
                 <span className="text-xs font-bold text-slate-900 font-display">
-                  ${Math.round(cat.amount).toLocaleString()}
+                  ₹{Math.round(cat.amount).toLocaleString("en-IN")}
                 </span>
                 <span className="text-[11px] text-slate-400 ml-1.5 font-medium">
                   ({cat.percentage}%)
@@ -147,6 +147,7 @@ export function CategoryBreakdown({ categories }: CategoryBreakdownProps) {
           ))}
         </div>
       </div>
+
     </div>
   );
 }
