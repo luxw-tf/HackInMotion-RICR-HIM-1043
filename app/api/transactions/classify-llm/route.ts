@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const userId = session.user.id;
     const accountHolderName = session.user.name || "Account Holder";
 
-    // 1. Fetch user's transactions that need classification or all transactions
+    // 1. Fetch user's transactions
     const userTransactions = await prisma.transaction.findMany({
       where: { userId },
       select: {
@@ -47,10 +47,10 @@ export async function POST(req: Request) {
     // 2. Group transactions by normalized counterparty key
     const grouped = groupTransactionsByCounterparty(userTransactions);
 
-    // 3. Batch classify distinct counterparties via Claude (20-30 per call)
-    const result = await classifyCounterpartiesWithClaude(grouped, accountHolderName, 25);
+    // 3. Batch classify distinct counterparties via Claude (35 per call in parallel)
+    const result = await classifyCounterpartiesWithClaude(grouped, accountHolderName, 35);
 
-    // 4. Fetch all category records to map category names to IDs
+    // 4. Fetch all category records
     const allCategories = await prisma.category.findMany({
       where: {
         OR: [{ userId: null }, { userId }],
@@ -62,13 +62,16 @@ export async function POST(req: Request) {
       categoryMap.set(c.name.toLowerCase(), c.id);
     });
 
-    // 5. Apply classifications back to database transactions in bulk
+    // 5. Build lookup map
     const classificationMap = new Map<string, typeof result.classifications[0]>();
     result.classifications.forEach((c) => {
       classificationMap.set(c.counterpartyKey.toLowerCase(), c);
     });
 
+    // 6. Fast batch update with Prisma Transaction
+    const updateOperations = [];
     let updatedCount = 0;
+
     for (const tx of userTransactions) {
       const key = groupTransactionsByCounterparty([{ description: tx.description, amount: tx.amount }])[0]?.counterpartyKey;
       if (!key) continue;
@@ -76,21 +79,28 @@ export async function POST(req: Request) {
       const matchedCls = classificationMap.get(key.toLowerCase());
       if (matchedCls) {
         const catId = categoryMap.get(matchedCls.category.toLowerCase()) || null;
-        await prisma.transaction.update({
-          where: { id: tx.id },
-          data: {
-            categoryId: catId,
-            merchant: matchedCls.counterpartyKey,
-            reasoning: `Claude LLM [${matchedCls.semanticFlag}]: ${matchedCls.reasoning}`,
-          },
-        });
+        updateOperations.push(
+          prisma.transaction.update({
+            where: { id: tx.id },
+            data: {
+              categoryId: catId,
+              merchant: matchedCls.counterpartyKey,
+              reasoning: `Claude LLM [${matchedCls.semanticFlag}]: ${matchedCls.reasoning}`,
+            },
+          })
+        );
         updatedCount++;
       }
     }
 
+    if (updateOperations.length > 0) {
+      // Execute all database updates in a single fast atomic batch transaction
+      await prisma.$transaction(updateOperations);
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Successfully classified ${updatedCount} transactions across ${result.distinctCounterparties} distinct counterparties with ${result.apiCallsMade} Claude API call(s).`,
+      message: `Classified ${updatedCount} transactions across ${result.distinctCounterparties} counterparties in ${result.apiCallsMade} parallel API call(s).`,
       metrics: {
         totalTransactions: result.totalTransactions,
         distinctCounterparties: result.distinctCounterparties,
