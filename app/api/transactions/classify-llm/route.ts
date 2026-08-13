@@ -40,6 +40,7 @@ export async function POST(req: Request) {
           apiCallsMade: 0,
           reductionPercentage: 0,
           cachedHits: 0,
+          updatedCount: 0,
         },
       });
     }
@@ -47,8 +48,8 @@ export async function POST(req: Request) {
     // 2. Group transactions by normalized counterparty key
     const grouped = groupTransactionsByCounterparty(userTransactions);
 
-    // 3. Batch classify distinct counterparties via Claude (35 per call in parallel)
-    const result = await classifyCounterpartiesWithClaude(grouped, accountHolderName, 35);
+    // 3. Batch classify distinct counterparties via Claude (15 per call in parallel)
+    const result = await classifyCounterpartiesWithClaude(grouped, accountHolderName, 15);
 
     // 4. Fetch all category records
     const allCategories = await prisma.category.findMany({
@@ -68,10 +69,8 @@ export async function POST(req: Request) {
       classificationMap.set(c.counterpartyKey.toLowerCase(), c);
     });
 
-    // 6. Fast batch update with Prisma Transaction
-    const updateOperations = [];
+    // 6. Safe database updates
     let updatedCount = 0;
-
     for (const tx of userTransactions) {
       const key = groupTransactionsByCounterparty([{ description: tx.description, amount: tx.amount }])[0]?.counterpartyKey;
       if (!key) continue;
@@ -79,28 +78,26 @@ export async function POST(req: Request) {
       const matchedCls = classificationMap.get(key.toLowerCase());
       if (matchedCls) {
         const catId = categoryMap.get(matchedCls.category.toLowerCase()) || null;
-        updateOperations.push(
-          prisma.transaction.update({
+        try {
+          await prisma.transaction.update({
             where: { id: tx.id },
             data: {
               categoryId: catId,
               merchant: matchedCls.counterpartyKey,
               reasoning: `Claude LLM [${matchedCls.semanticFlag}]: ${matchedCls.reasoning}`,
             },
-          })
-        );
-        updatedCount++;
+          });
+          updatedCount++;
+        } catch (updateErr) {
+          // Non-blocking skip if row was concurrently deleted
+          console.warn(`Could not update tx ${tx.id}:`, updateErr);
+        }
       }
-    }
-
-    if (updateOperations.length > 0) {
-      // Execute all database updates in a single fast atomic batch transaction
-      await prisma.$transaction(updateOperations);
     }
 
     return NextResponse.json({
       success: true,
-      message: `Classified ${updatedCount} transactions across ${result.distinctCounterparties} counterparties in ${result.apiCallsMade} parallel API call(s).`,
+      message: `Classified ${updatedCount} transactions across ${result.distinctCounterparties} counterparties in ${result.apiCallsMade} parallel Claude API call(s).`,
       metrics: {
         totalTransactions: result.totalTransactions,
         distinctCounterparties: result.distinctCounterparties,
@@ -111,10 +108,10 @@ export async function POST(req: Request) {
       },
       classifications: result.classifications,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("LLM Classification API error:", error);
     return NextResponse.json(
-      { error: "Failed to execute LLM counterparty classification." },
+      { error: error.message || "Failed to execute LLM counterparty classification." },
       { status: 500 }
     );
   }

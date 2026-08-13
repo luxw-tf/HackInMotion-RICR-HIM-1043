@@ -34,13 +34,13 @@ export interface BatchClassificationResult {
 const counterpartyCache = new Map<string, CounterpartyClassification>();
 
 /**
- * Classifies a batch of unique counterparty keys concurrently using Claude 3.5 Haiku / Sonnet.
- * Runs batches in parallel for lightning-fast sub-3-second responses.
+ * Classifies a batch of unique counterparty keys concurrently using Claude.
+ * Uses robust JSON extraction and safe batch size of 15 to prevent token limits and JSON truncation.
  */
 export async function classifyCounterpartiesWithClaude(
   groupedCounterparties: GroupedCounterparty[],
   accountHolderName: string = "Account Holder",
-  batchSize: number = 35
+  batchSize: number = 15
 ): Promise<BatchClassificationResult> {
   const totalTransactions = groupedCounterparties.reduce((sum, g) => sum + g.transactionCount, 0);
   const distinctCounterparties = groupedCounterparties.length;
@@ -62,7 +62,7 @@ export async function classifyCounterpartiesWithClaude(
     }
   }
 
-  // Create slices for parallel execution
+  // Create slices for parallel execution (15 counterparties per call)
   const batches: GroupedCounterparty[][] = [];
   for (let i = 0; i < toClassify.length; i += batchSize) {
     batches.push(toClassify.slice(i, i + batchSize));
@@ -117,28 +117,27 @@ Categories must be one of:
 - "Uncategorized"
 
 Semantic flags must be strictly one of:
-- "Self Transfer" (Transfers between user's own accounts/wallets)
-- "Family Transfer" (P2P transfers to individuals / friends / family)
-- "Reversal" (Refunds, failed transaction reversals)
-- "Cash Withdrawal" (ATM cash out)
-- "Bank Fee" (Charges, interest debit, penalty)
-- "Recurring Income" (Salary, client retainer, dividends)
-- "Discretionary Expense" (Dining, luxury, shopping, entertainment)
-- "Essential Expense" (Groceries, rent, electricity, healthcare, fuel)
-- "Needs Review" (Ambiguous personal transfers)
+- "Self Transfer"
+- "Family Transfer"
+- "Reversal"
+- "Cash Withdrawal"
+- "Bank Fee"
+- "Recurring Income"
+- "Discretionary Expense"
+- "Essential Expense"
+- "Needs Review"
 
-Return a strictly valid JSON array of objects with fields:
+Return ONLY a raw valid JSON array:
 [
   {
     "counterpartyKey": string,
     "category": string,
     "semanticFlag": SemanticFlag,
     "isEssential": boolean,
-    "confidence": number (0.0 to 1.0),
-    "reasoning": string (concise explanation)
+    "confidence": number,
+    "reasoning": string
   }
-]
-Do not include markdown codeblocks or conversational text, ONLY raw JSON.`;
+]`;
 
   // Process all batches in parallel with Promise.all
   const batchPromises = batches.map(async (batch) => {
@@ -159,26 +158,33 @@ Do not include markdown codeblocks or conversational text, ONLY raw JSON.`;
         messages: [
           {
             role: "user",
-            content: `Classify the following batch of ${batch.length} counterparties:\n${JSON.stringify(promptPayload, null, 2)}`,
+            content: `Classify these ${batch.length} counterparties as JSON array:\n${JSON.stringify(promptPayload)}`,
           },
         ],
       });
 
       const responseText = message.content[0].type === "text" ? message.content[0].text : "";
-      const cleanedJson = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
-      const parsedArray: CounterpartyClassification[] = JSON.parse(cleanedJson);
+      
+      // Clean JSON markers
+      let cleanedJson = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+      const firstBracket = cleanedJson.indexOf("[");
+      const lastBracket = cleanedJson.lastIndexOf("]");
+      if (firstBracket !== -1 && lastBracket !== -1) {
+        cleanedJson = cleanedJson.slice(firstBracket, lastBracket + 1);
+      }
 
+      const parsedArray: CounterpartyClassification[] = JSON.parse(cleanedJson);
       return parsedArray;
     } catch (err) {
       console.error("Claude batch classification error:", err);
-      // Fallback for this specific batch
+      // Fallback on error for this batch
       return batch.map((item) => ({
         counterpartyKey: item.counterpartyKey,
         category: "Uncategorized",
         semanticFlag: "Needs Review" as SemanticFlag,
         isEssential: false,
         confidence: 0.4,
-        reasoning: "Classification exception fallback",
+        reasoning: "Classification fallback",
       }));
     }
   });

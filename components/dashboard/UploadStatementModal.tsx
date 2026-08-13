@@ -120,28 +120,49 @@ export function UploadStatementModal({
     if (isPdf) {
       processPdfFile(selectedFile);
     } else {
-      // Process CSV locally
-      Papa.parse(selectedFile, {
-        header: true,
-        skipEmptyLines: "greedy",
-        complete: (results) => {
-          if (!results.data || results.data.length === 0) {
-            setErrorMessage("The uploaded CSV file is empty or could not be read.");
-            return;
+      // Direct Claude Statement Processing
+      setIsProcessing(true);
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const rawContent = event.target?.result as string;
+        if (!rawContent || !rawContent.trim()) {
+          setErrorMessage("The uploaded CSV file is empty.");
+          setIsProcessing(false);
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/transactions/import-claude", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              rawContent,
+              filename: selectedFile.name,
+            }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "Failed to process statement with Claude.");
           }
 
-          const rawData = results.data as Record<string, any>[];
-          const res = parseBankStatementCSV(rawData);
-          setParseResult(res);
+          setImportSummary({
+            insertedCount: data.insertedCount,
+            duplicateCount: data.duplicateCount,
+            skippedCount: 0,
+            batchId: data.batchId,
+            duplicates: data.duplicates || [],
+            errors: [],
+          });
 
-          if (res.validRows.length === 0 && res.errors.length > 0) {
-            setErrorMessage(`Could not extract valid transactions: ${res.errors[0].reason}`);
-          }
-        },
-        error: (error) => {
-          setErrorMessage(`CSV Parsing error: ${error.message}`);
-        },
-      });
+          onSuccess();
+        } catch (err: any) {
+          setErrorMessage(err.message || "Failed to parse CSV statement with Claude.");
+        } finally {
+          setIsProcessing(false);
+        }
+      };
+      reader.readAsText(selectedFile);
     }
   };
 
@@ -155,6 +176,7 @@ export function UploadStatementModal({
     if (!parseResult || parseResult.validRows.length === 0) return;
     setIsProcessing(true);
     setErrorMessage(null);
+
 
     try {
       const res = await fetch("/api/transactions/import-csv", {
