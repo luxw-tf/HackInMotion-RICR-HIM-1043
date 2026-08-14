@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { parseFlexibleDate, parseAmountString, ParsedTransactionRow, ParseRowError } from "@/lib/importer/statementParser";
+import { parseStatementWithClaude } from "@/lib/importer/directClaudeParser";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
     }
 
+    const accountHolderName = session.user.name || "Account Holder";
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const password = (formData.get("password") as string) || "";
@@ -23,8 +25,17 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Dynamically import pdfjs-dist for Node.js App Router server environment
+    // Dynamically import pdfjs-dist and worker for Node.js App Router & Vercel serverless environment
+    // @ts-ignore
     const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.js");
+    // @ts-ignore
+    await import("pdfjs-dist/legacy/build/pdf.worker.js");
+    
+    if (pdfjsLib.GlobalWorkerOptions) {
+      pdfjsLib.GlobalWorkerOptions.workerPort = null;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+    }
+
 
     let doc;
     try {
@@ -35,7 +46,6 @@ export async function POST(req: Request) {
         disableFontFace: true,
         isEvalSupported: false,
       });
-
 
       doc = await loadingTask.promise;
     } catch (pdfErr: any) {
@@ -66,19 +76,18 @@ export async function POST(req: Request) {
       const page = await doc.getPage(pageNum);
       const textContent = await page.getTextContent();
 
-      // Group text items by roughly similar vertical Y-coordinate
+      // Group text items by vertical Y-coordinate buckets
       const items = textContent.items as Array<{ str: string; transform: number[] }>;
       const rowMap = new Map<number, string[]>();
 
       for (const item of items) {
         if (!item.str || !item.str.trim()) continue;
-        // transform[5] is the Y-coordinate in PDF space
-        const y = Math.round(item.transform[5] / 4) * 4; // round to tolerance bucket
+        const y = Math.round(item.transform[5] / 4) * 4;
         if (!rowMap.has(y)) rowMap.set(y, []);
         rowMap.get(y)!.push(item.str.trim());
       }
 
-      // Sort rows top to bottom (higher Y in PDF is higher on page)
+      // Sort rows top to bottom
       const sortedY = Array.from(rowMap.keys()).sort((a, b) => b - a);
       for (const y of sortedY) {
         const line = rowMap.get(y)!.join("   ");
@@ -88,11 +97,45 @@ export async function POST(req: Request) {
       }
     }
 
+    const fullStatementText = allLines.join("\n");
+
+    // 1. Try Direct Claude Statement Parser if API key is available
+    if (process.env.ANTHROPIC_API_KEY && fullStatementText.length > 50) {
+      try {
+        const claudeResults = await parseStatementWithClaude(fullStatementText, accountHolderName);
+
+        if (Array.isArray(claudeResults) && claudeResults.length > 0) {
+          const validRows: ParsedTransactionRow[] = claudeResults.map((tx, idx) => {
+            const parsedDate = parseFlexibleDate(tx.date) || new Date();
+            return {
+              date: parsedDate,
+              dateStr: tx.date || parsedDate.toISOString().split("T")[0],
+              description: tx.description || tx.merchant,
+              amount: Math.abs(tx.amount),
+              type: tx.type === "INCOME" ? "INCOME" : "EXPENSE",
+              rawRow: { merchant: tx.merchant, reasoning: tx.reasoning },
+              rowIndex: idx + 1,
+            };
+          });
+
+          return NextResponse.json({
+            success: true,
+            validRows,
+            errors: [],
+            totalRowsProcessed: validRows.length,
+            detectedFormat: "PDF_STATEMENT_CLAUDE_AI",
+            filename: file.name,
+            pageCount: numPages,
+          });
+        }
+      } catch (claudeErr) {
+        console.warn("Claude PDF extraction fallback to heuristic parser:", claudeErr);
+      }
+    }
+
+    // 2. Deterministic Rule-Based Fallback Parser with accurate Debit vs Credit detection
     const validRows: ParsedTransactionRow[] = [];
     const errors: ParseRowError[] = [];
-
-    // Date regex patterns common in Indian and global bank statements
-    // e.g. 14/08/2026, 14-08-2026, 14-Aug-2026, 14 Aug 2026, 2026-08-14
     const dateRegex = /\b(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{1,2}[\/\-\s](?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\/\-\s]\d{2,4}|\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})\b/i;
 
     let rowIndex = 0;
@@ -100,33 +143,20 @@ export async function POST(req: Request) {
     for (const line of allLines) {
       rowIndex++;
       const dateMatch = line.match(dateRegex);
-
-      if (!dateMatch) {
-        // Not a transaction row (could be header/footer/metadata)
-        continue;
-      }
+      if (!dateMatch) continue;
 
       const dateStr = dateMatch[0];
       const parsedDate = parseFlexibleDate(dateStr);
       if (!parsedDate) continue;
 
-      // Extract numbers/amounts from the line (e.g. 1,450.00, 125000.00, 32,000.00 Dr)
       const amountMatches = line.match(/(?:[₹\$]\s*)?[\d,]+\.\d{2}(?:\s*(?:Dr|Cr|Debit|Credit))?/gi);
+      if (!amountMatches || amountMatches.length === 0) continue;
 
-      if (!amountMatches || amountMatches.length === 0) {
-        continue;
-      }
-
-      // In statements with [Withdrawal, Deposit, Balance] or [Amount, Balance],
-      // the transaction amount is typically the first amount token.
       const primaryAmtStr = amountMatches[0];
       const parsedAmount = parseAmountString(primaryAmtStr);
+      if (!parsedAmount || parsedAmount.amount <= 0) continue;
 
-      if (!parsedAmount || parsedAmount.amount <= 0) {
-        continue;
-      }
-
-      // Extract Narration / Merchant by removing date and amounts from the line
+      // Extract Narration
       let narration = line
         .replace(dateMatch[0], "")
         .replace(/(?:[₹\$]\s*)?[\d,]+\.\d{2}(?:\s*(?:Dr|Cr|Debit|Credit))?/gi, "")
@@ -138,12 +168,41 @@ export async function POST(req: Request) {
         narration = "Bank Transaction " + dateStr;
       }
 
+      // Accurate Debit vs Credit classification:
+      const upperLine = line.toUpperCase();
+      const isExplicitCredit =
+        upperLine.includes("UPI/CR") ||
+        upperLine.includes("/CR/") ||
+        upperLine.includes(" CR") ||
+        upperLine.includes("CREDIT") ||
+        upperLine.includes("SALARY") ||
+        upperLine.includes("REFUND") ||
+        upperLine.includes("DIVIDEND") ||
+        upperLine.includes("INTEREST PAID");
+
+      const isExplicitDebit =
+        upperLine.includes("UPI/DR") ||
+        upperLine.includes("/DR/") ||
+        upperLine.includes(" DR") ||
+        upperLine.includes("DEBIT") ||
+        upperLine.includes("WDL") ||
+        upperLine.includes("WITHDRAWAL") ||
+        upperLine.includes("POS") ||
+        upperLine.includes("PURCHASE") ||
+        upperLine.includes("PAID") ||
+        parsedAmount.isNegative;
+
+      let txType: "EXPENSE" | "INCOME" = "EXPENSE"; // Default to EXPENSE (debit)
+      if (isExplicitCredit && !isExplicitDebit) {
+        txType = "INCOME";
+      }
+
       validRows.push({
         date: parsedDate,
         dateStr: parsedDate.toISOString().split("T")[0],
         description: narration,
         amount: parsedAmount.amount,
-        type: parsedAmount.isNegative ? "EXPENSE" : "INCOME",
+        type: txType,
         rawRow: { line },
         rowIndex,
       });
