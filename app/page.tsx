@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ShieldCheck, ArrowRight, Activity, PieChart, Sparkles, CheckCircle, BarChart3 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
+
   const session = await getServerSession(authOptions);
 
   if (session?.user) {

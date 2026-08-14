@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
+
   title: "Clarity | Smart Expense Analyzer & Financial Health Dashboard",
   description: "An honest, clear picture of your financial health. Deterministic categorization, pattern intelligence, and computed health scores.",
 };
