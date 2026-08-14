@@ -1,147 +1,208 @@
-# API Documentation
+# Clarity Financial Intelligence API Specification
 
-This document maintains the API endpoints, request/response structures, and authentication requirements for the **Smart Expense Analyzer & Financial Health Dashboard**.
+## Base URL
+```
+/api
+```
 
----
-
-## Overview & Authentication
-- **Base Path**: `/api`
-- **Security**: All API routes require authenticated sessions via NextAuth. Requests without a valid session return `401 Unauthorized`.
-- **Tenant Scoping**: All database operations filter strictly by `userId` extracted from the verified session token.
+## Authentication
+All endpoints (except `/api/auth/*`) require an active NextAuth session cookie (`next-auth.session-token`). Requests without a valid session return HTTP `401 Unauthorized`.
 
 ---
 
 ## 1. Authentication Endpoints
 
-### `POST /api/auth/register`
-Creates a new user account with secure hashed password storage.
+### Register User
+`POST /api/auth/register`
 - **Request Body**:
-  ```json
-  {
-    "name": "Alex Rivera",
-    "email": "alex@example.com",
-    "password": "secretpassword"
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "SecurePassword123!"
+}
+```
+- **Response** (`201 Created`):
+```json
+{
+  "user": {
+    "id": "cuid_xyz",
+    "name": "Jane Doe",
+    "email": "jane@example.com"
+  },
+  "message": "User registered successfully."
+}
+```
+
+### Initialize Demo Session
+`POST /api/auth/bootstrap-demo`
+- **Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "message": "Demo user initialized successfully.",
+  "user": {
+    "id": "demo-user-1043",
+    "email": "demo@smartfinance.app",
+    "name": "Alex Rivera"
   }
-  ```
-- **Response `201 Created`**:
-  ```json
-  {
-    "message": "Account created successfully.",
-    "user": {
-      "id": "cuid...",
-      "name": "Alex Rivera",
-      "email": "alex@example.com",
-      "createdAt": "2026-08-14T..."
-    }
-  }
-  ```
+}
+```
 
 ---
 
-## 2. Financial Health Score Endpoints
+## 2. Transactions & Importers
 
-### `GET /api/health-score`
-Computes the live Financial Health Score (0-100), 50/30/20 breakdown, cashflow consistency, runway buffer, plain-language advisory insights, and recurring subscription detections directly from the authenticated user's transactions.
-- **Response `200 OK`**:
-  ```json
-  {
-    "success": true,
-    "transactionCount": 42,
-    "data": {
-      "overallScore": 86,
-      "tier": "PRISTINE",
-      "headline": "Excellent Financial Health",
-      "summary": "Your cash flow is strong, essential expenses are disciplined...",
-      "monthlyIncome": 7450,
-      "monthlyExpenses": 3820,
-      "monthlySavings": 3630,
-      "savingsRate": 48.7,
-      "essentialRatio": 38.5,
-      "discretionaryRatio": 12.8,
-      "bufferMonths": 2.5,
-      "breakdown": {
-        "savingsRate": { "score": 100, "value": 48.7, "target": "≥ 20%", "status": "EXCELLENT" },
-        "essentialRatio": { "score": 100, "value": 38.5, "target": "≤ 50%", "status": "EXCELLENT" },
-        "discretionaryRatio": { "score": 100, "value": 12.8, "target": "≤ 30%", "status": "EXCELLENT" },
-        "cashflowConsistency": { "score": 100, "value": 3630, "status": "EXCELLENT" }
-      },
-      "insights": [...],
-      "recurringSubscriptions": [...],
-      "categoryTotals": [...]
-    }
-  }
-  ```
-
----
-
-## 3. Transaction Endpoints
-
-### `GET /api/transactions`
-Retrieves transactions scoped strictly to the current user.
+### List & Filter Transactions
+`GET /api/transactions`
 - **Query Parameters**:
-  - `categoryId` (optional): Filter by category ID.
-  - `type` (optional): `EXPENSE`, `INCOME`, or `SAVINGS`.
-  - `search` (optional): Substring search across description, merchant, notes.
-  - `limit` (optional): Max records to return (default: 100).
-- **Response `200 OK`**: List of transaction objects with category relations and reasoning audit trails.
+  - `page` (integer, default: 1)
+  - `limit` (integer, default: 50)
+  - `type` (`EXPENSE` | `INCOME` | `SAVINGS`)
+  - `categoryId` (string, optional)
+  - `search` (string, optional narration filter)
+  - `startDate` (ISO YYYY-MM-DD, optional)
+  - `endDate` (ISO YYYY-MM-DD, optional)
+- **Response** (`200 OK`):
+```json
+{
+  "transactions": [
+    {
+      "id": "tx_01",
+      "date": "2026-08-14T00:00:00.000Z",
+      "description": "INFOSYS TECH CORP DIRECT SALARY CREDIT",
+      "merchant": "Infosys",
+      "amount": 125000.00,
+      "type": "INCOME",
+      "category": { "id": "cat_01", "name": "Income & Salary", "color": "#059669" },
+      "financialAccount": { "id": "acc_01", "name": "HDFC Salary Account" },
+      "reasoning": "Rule matched keyword: salary"
+    }
+  ],
+  "total": 38,
+  "page": 1,
+  "totalPages": 1
+}
+```
 
-### `POST /api/transactions`
-Records a new transaction. If no category ID is provided, automatically executes the deterministic rule categorization engine and logs the rule reasoning.
+### Create Transaction
+`POST /api/transactions`
 - **Request Body**:
-  ```json
-  {
-    "description": "Trader Joe's Supermarket",
-    "amount": 84.50,
-    "date": "2026-08-14",
-    "customCategoryId": "optional-id",
-    "notes": "Weekly groceries",
-    "isRecurring": false
-  }
-  ```
+```json
+{
+  "description": "Swiggy Food Delivery",
+  "amount": 720.00,
+  "type": "EXPENSE",
+  "date": "2026-08-14",
+  "categoryId": "cat_food_id",
+  "accountId": "acc_hdfc_id"
+}
+```
 
-### `DELETE /api/transactions?id={id}`
-Deletes a single transaction scoped strictly to the authenticated user.
-
-### `POST /api/transactions/import-csv`
-Bulk imports parsed CSV rows with automatic batch rule categorization and error tolerance.
+### Direct Claude AI Statement Import
+`POST /api/transactions/import-claude`
 - **Request Body**:
-  ```json
-  {
-    "rows": [
-      { "date": "2026-08-10", "description": "Chevron Gas", "amount": 45.00, "type": "EXPENSE" }
-    ],
-    "filename": "bank_statement.csv"
-  }
-  ```
+```json
+{
+  "rawContent": "01/08/2026,UPI/DR/622450640912/MUKESH S/YESB/paytm.s22m/UPI,,450.00,,124550.00\n...",
+  "filename": "statement.csv"
+}
+```
+- **Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "message": "Claude processed statement: 10 transactions categorized & imported, 0 duplicates skipped.",
+  "insertedCount": 10,
+  "duplicateCount": 0,
+  "batchId": "claude_batch_1786719999"
+}
+```
 
-### `POST /api/transactions/seed-demo`
-Seeds or resets the user's account with 3 months of realistic categorized sample transactions, goals, and budgets for evaluation.
+### PDF Statement Decrypt & Parse
+`POST /api/transactions/parse-pdf`
+- **Multipart Form Data**:
+  - `file`: PDF file blob
+  - `password`: string (optional decryption key)
+- **Response** (`200 OK`):
+```json
+{
+  "success": true,
+  "validRows": [
+    {
+      "date": "2026-08-01T00:00:00.000Z",
+      "dateStr": "2026-08-01",
+      "description": "Mukesh S",
+      "amount": 450.00,
+      "type": "EXPENSE"
+    }
+  ],
+  "totalRowsProcessed": 10,
+  "detectedFormat": "PDF_STATEMENT_CLAUDE_AI",
+  "pageCount": 2
+}
+```
 
 ---
 
-## 4. Category & Rule Endpoints
+## 3. Financial Analytics & Health Score
 
-### `GET /api/categories`
-Fetches all available categories (both default system taxonomy and user-defined custom rules).
-
-### `POST /api/categories`
-Creates a custom user category with keyword match rules and essential/discretionary classification.
+### Compute Health Score Snapshot
+`GET /api/health-score`
+- **Response** (`200 OK`):
+```json
+{
+  "score": 78,
+  "rating": "Good",
+  "savingsRate": 0.28,
+  "essentialRatio": 0.44,
+  "discretionaryRatio": 0.28,
+  "bufferMonths": 4.5,
+  "monthlyIncome": 149000.00,
+  "monthlyExpense": 107280.00,
+  "netSavings": 41720.00,
+  "breakdown": {
+    "savingsRateScore": 82,
+    "essentialRatioScore": 92,
+    "discretionaryRatioScore": 75,
+    "bufferMonthsScore": 70,
+    "stabilityScore": 71
+  },
+  "insights": [
+    {
+      "type": "POSITIVE",
+      "title": "Healthy Savings Rate (28%)",
+      "message": "You are directing 28% of your net income to investments and emergency savings."
+    }
+  ]
+}
+```
 
 ---
 
-## 5. Budget & Goal Endpoints
+## 4. Budgets & Goals
 
-### `GET /api/budgets?month={m}&year={y}`
-Returns monthly category budgets with actual spending aggregated in real-time.
+### Get & Set Monthly Budgets
+`GET /api/budgets` | `POST /api/budgets`
+- **Payload**:
+```json
+{
+  "categoryId": "cat_01",
+  "amount": 18000.00,
+  "month": 8,
+  "year": 2026
+}
+```
 
-### `POST /api/budgets`
-Sets or updates a monthly category budget limit.
-
-### `GET /api/goals`
-Returns all active financial goals with calculated progress percentages.
-
-### `POST /api/goals`
-Creates a new financial milestone or emergency cushion goal.
-
-### `PUT /api/goals`
-Updates financial goal current amount or status.
+### Manage Savings Goals
+`GET /api/goals` | `POST /api/goals`
+- **Payload**:
+```json
+{
+  "name": "6-Month Emergency Fund",
+  "targetAmount": 300000.00,
+  "currentAmount": 195000.00,
+  "categoryType": "EMERGENCY_FUND",
+  "targetDate": "2027-02-14"
+}
+```
