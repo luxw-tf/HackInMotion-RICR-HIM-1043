@@ -48,6 +48,10 @@ function LoginForm() {
     setIsDemoLoading(true);
 
     try {
+      // 1. Ensure demo user and demo records exist in database
+      await fetch("/api/auth/bootstrap-demo", { method: "POST" });
+
+      // 2. Sign in with demo credentials
       const res = await signIn("credentials", {
         redirect: false,
         email: "demo@smartfinance.app",
@@ -56,7 +60,7 @@ function LoginForm() {
       });
 
       if (res?.error) {
-        setErrorMessage("Demo mode initialization failed. Please try credentials directly.");
+        setErrorMessage(res.error || "Demo mode initialization failed.");
         setIsDemoLoading(false);
       } else {
         router.push("/dashboard");
@@ -67,6 +71,7 @@ function LoginForm() {
       setIsDemoLoading(false);
     }
   };
+
 
   return (
     <div className="glass-card py-8 px-6 sm:px-10 rounded-2xl border border-slate-200/80 shadow-card">

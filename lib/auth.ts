@@ -9,8 +9,9 @@ if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.trim() === "") {
     : "http://localhost:3000";
 }
 
-export const authOptions: NextAuthOptions = {
+import { bootstrapDemoUser } from "./auth/bootstrapDemoUser";
 
+export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -31,9 +32,19 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Please provide both email and password.");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase().trim() },
+        const inputEmail = credentials.email.toLowerCase().trim();
+        let user = await prisma.user.findUnique({
+          where: { email: inputEmail },
         });
+
+        // Auto-bootstrap demo user and sample dataset if fresh database
+        if (!user && inputEmail === "demo@smartfinance.app") {
+          try {
+            user = await bootstrapDemoUser();
+          } catch (e) {
+            console.error("Auto-bootstrap demo user error:", e);
+          }
+        }
 
         if (!user || !user.password) {
           throw new Error("No account found with this email address.");
@@ -43,6 +54,7 @@ export const authOptions: NextAuthOptions = {
         if (!isValid) {
           throw new Error("Invalid password provided.");
         }
+
 
         return {
           id: user.id,
